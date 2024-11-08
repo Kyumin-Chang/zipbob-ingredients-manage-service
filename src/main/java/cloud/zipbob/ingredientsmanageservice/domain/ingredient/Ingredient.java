@@ -1,6 +1,7 @@
 package cloud.zipbob.ingredientsmanageservice.domain.ingredient;
 
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.Refrigerator;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -39,6 +40,7 @@ public class Ingredient {
 
     @ManyToOne
     @JoinColumn(name = "refrigerator_id")
+    @JsonBackReference
     private Refrigerator refrigerator;
 
     public void updateQuantity(int quantity) {

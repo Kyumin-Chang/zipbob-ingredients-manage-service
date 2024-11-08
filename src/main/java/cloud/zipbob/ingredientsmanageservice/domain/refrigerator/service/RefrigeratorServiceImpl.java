@@ -29,6 +29,12 @@ public class RefrigeratorServiceImpl implements RefrigeratorService {
     }
 
     @Override
+    public RefrigeratorResponse getRefrigerator(RefrigeratorRequest request) {
+        Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
+        return RefrigeratorResponse.of(refrigerator);
+    }
+
+    @Override
     public RefrigeratorResponse deleteRefrigerator(RefrigeratorRequest request) {
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
         refrigeratorRepository.delete(refrigerator);

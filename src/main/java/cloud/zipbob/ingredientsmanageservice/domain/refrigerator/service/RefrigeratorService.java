@@ -8,4 +8,6 @@ public interface RefrigeratorService {
     RefrigeratorResponse createRefrigerator(RefrigeratorCreateRequest request);
 
     RefrigeratorResponse deleteRefrigerator(RefrigeratorRequest request);
+
+    RefrigeratorResponse getRefrigerator(RefrigeratorRequest request);
 }

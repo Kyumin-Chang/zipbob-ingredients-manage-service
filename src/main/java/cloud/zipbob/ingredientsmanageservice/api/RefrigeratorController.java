@@ -21,9 +21,16 @@ public class RefrigeratorController {
         return Responder.success(response);
     }
 
+    @GetMapping("")
+    public ResponseEntity<RefrigeratorResponse> getRefrigerator(final @RequestBody RefrigeratorRequest request) {
+        RefrigeratorResponse response = refrigeratorService.getRefrigerator(request);
+        return Responder.success(response);
+    }
+
     @DeleteMapping("")
     public ResponseEntity<RefrigeratorResponse> deleteRefrigerator(final @RequestBody RefrigeratorRequest request) {
         RefrigeratorResponse response = refrigeratorService.deleteRefrigerator(request);
         return Responder.success(response);
     }
+    // TODO 레시피 추천 api 제작하기 ( 재료 있는 지에 대한 여부 확인 및 rabbitmq에 올리기 )
 }

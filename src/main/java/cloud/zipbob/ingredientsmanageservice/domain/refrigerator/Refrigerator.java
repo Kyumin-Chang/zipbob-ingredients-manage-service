@@ -1,11 +1,14 @@
 package cloud.zipbob.ingredientsmanageservice.domain.refrigerator;
 
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.Ingredient;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -21,7 +24,11 @@ public class Refrigerator {
 
     @Column(nullable = false)
     private Long memberId;
-    // TODO 재료에 대한 연관 관계 추가 여부 결정하기
+
+    @OneToMany(mappedBy = "refrigerator", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Ingredient> ingredients;
+
     @CreatedDate
     LocalDateTime createdAt;
 }
