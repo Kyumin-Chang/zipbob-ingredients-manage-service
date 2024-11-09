@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 @Getter
 public enum IngredientType {
-
+    // TODO 냉장고 재료 카테고리 세분화 및 추가
     //주 재료
     EGG(Category.MAIN),
     MILK(Category.MAIN),
