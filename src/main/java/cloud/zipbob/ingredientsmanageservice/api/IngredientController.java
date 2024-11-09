@@ -34,12 +34,6 @@ public class IngredientController {
         return Responder.success(response);
     }
 
-    @GetMapping("")
-    public ResponseEntity<GetIngredientsResponse> getIngredients(final @RequestBody GetIngredientsRequest request) {
-        GetIngredientsResponse response = ingredientService.getIngredients(request);
-        return Responder.success(response);
-    }
-
     @GetMapping("/type")
     public ResponseEntity<GetIngredientsByTypeResponse> getIngredientsByType(final @RequestBody GetIngredientsByTypeRequest request) {
         try {

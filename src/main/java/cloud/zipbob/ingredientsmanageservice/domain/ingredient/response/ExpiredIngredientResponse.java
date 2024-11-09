@@ -9,9 +9,10 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class ExpiredIngredientResponse {
+    private Long refrigeratorId;
     private List<Ingredient> expiredIngredients;
 
-    public static ExpiredIngredientResponse of(List<Ingredient> expiredIngredients) {
-        return new ExpiredIngredientResponse(expiredIngredients);
+    public static ExpiredIngredientResponse of(Long refrigeratorId, List<Ingredient> expiredIngredients) {
+        return new ExpiredIngredientResponse(refrigeratorId, expiredIngredients);
     }
 }

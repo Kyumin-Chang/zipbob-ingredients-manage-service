@@ -7,6 +7,7 @@ import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.repository.Refr
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.request.RefrigeratorCreateRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.request.RefrigeratorRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.response.RefrigeratorResponse;
+import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.response.RefrigeratorWithIngredientsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,9 +30,9 @@ public class RefrigeratorServiceImpl implements RefrigeratorService {
     }
 
     @Override
-    public RefrigeratorResponse getRefrigerator(RefrigeratorRequest request) {
+    public RefrigeratorWithIngredientsResponse getRefrigerator(RefrigeratorRequest request) {
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
-        return RefrigeratorResponse.of(refrigerator);
+        return RefrigeratorWithIngredientsResponse.of(refrigerator);
     }
 
     @Override

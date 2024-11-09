@@ -8,9 +8,10 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class IngredientDeleteResponse {
+    private Long refrigeratorId;
     private IngredientType ingredientType;
 
     public static IngredientDeleteResponse of(Ingredient ingredient) {
-        return new IngredientDeleteResponse(ingredient.getType());
+        return new IngredientDeleteResponse(ingredient.getRefrigerator().getId(), ingredient.getType());
     }
 }

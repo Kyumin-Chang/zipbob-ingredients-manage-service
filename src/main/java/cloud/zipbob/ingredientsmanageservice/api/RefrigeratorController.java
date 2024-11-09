@@ -3,6 +3,7 @@ package cloud.zipbob.ingredientsmanageservice.api;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.request.RefrigeratorCreateRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.request.RefrigeratorRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.response.RefrigeratorResponse;
+import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.response.RefrigeratorWithIngredientsResponse;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.service.RefrigeratorService;
 import cloud.zipbob.ingredientsmanageservice.global.Responder;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +23,8 @@ public class RefrigeratorController {
     }
 
     @GetMapping("")
-    public ResponseEntity<RefrigeratorResponse> getRefrigerator(final @RequestBody RefrigeratorRequest request) {
-        RefrigeratorResponse response = refrigeratorService.getRefrigerator(request);
+    public ResponseEntity<RefrigeratorWithIngredientsResponse> getRefrigerator(final @RequestBody RefrigeratorRequest request) {
+        RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(request);
         return Responder.success(response);
     }
 

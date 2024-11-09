@@ -61,17 +61,10 @@ public class IngredientServiceImpl implements IngredientService {
     }
 
     @Override
-    public GetIngredientsResponse getIngredients(GetIngredientsRequest request) {
-        Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
-        List<Ingredient> ingredients = ingredientRepository.findByRefrigeratorId(refrigerator.getId());
-        return GetIngredientsResponse.of(request.memberId(), refrigerator.getId(), ingredients);
-    }
-
-    @Override
     public ExpiredIngredientResponse getExpiredIngredients(ExpiredIngredientRequest request) {
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
         List<Ingredient> expiredIngredients = ingredientRepository.findByRefrigeratorId(refrigerator.getId()).stream().filter(ingredient -> ingredient.getExpiredDate().isBefore(LocalDate.now())).toList();
-        return ExpiredIngredientResponse.of(expiredIngredients);
+        return ExpiredIngredientResponse.of(refrigerator.getId(), expiredIngredients);
     }
 
     @Override

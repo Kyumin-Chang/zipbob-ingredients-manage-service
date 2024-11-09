@@ -10,8 +10,6 @@ public interface IngredientService {
 
     UpdateQuantityResponse updateQuantity(UpdateQuantityRequest request);
 
-    GetIngredientsResponse getIngredients(GetIngredientsRequest request);
-
     ExpiredIngredientResponse getExpiredIngredients(ExpiredIngredientRequest request);
 
     GetIngredientsByTypeResponse getIngredientsByType(GetIngredientsByTypeRequest request);
