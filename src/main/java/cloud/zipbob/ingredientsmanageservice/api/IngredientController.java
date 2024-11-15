@@ -49,4 +49,10 @@ public class IngredientController {
         ExpiredIngredientResponse response = ingredientService.getExpiredIngredients(request);
         return Responder.success(response);
     }
+
+    @PostMapping("/recipeRecommend")
+    public ResponseEntity<CheckAndSendMessageResponse> checkAndSendMessage(final @RequestBody CheckAndSendMessageRequest request) {
+        CheckAndSendMessageResponse response = ingredientService.checkAndSendMessage(request);
+        return Responder.success(response);
+    }
 }
