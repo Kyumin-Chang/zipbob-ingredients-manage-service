@@ -33,5 +33,4 @@ public class RefrigeratorController {
         RefrigeratorResponse response = refrigeratorService.deleteRefrigerator(request);
         return Responder.success(response);
     }
-    // TODO 레시피 추천 api 제작하기 ( 재료 있는 지에 대한 여부 확인 및 rabbitmq에 올리기 )
 }

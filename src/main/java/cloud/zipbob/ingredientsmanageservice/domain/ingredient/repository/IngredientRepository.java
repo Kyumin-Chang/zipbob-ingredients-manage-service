@@ -12,7 +12,5 @@ import java.util.Optional;
 public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
     List<Ingredient> findByRefrigeratorId(Long refrigeratorId);
 
-    List<Ingredient> findByType(IngredientType type);
-
     Optional<Ingredient> findByRefrigeratorIdAndType(Long refrigeratorId, IngredientType type);
 }

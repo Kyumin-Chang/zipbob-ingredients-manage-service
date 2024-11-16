@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class IngredientServiceImpl implements IngredientService {
 
     private final IngredientRepository ingredientRepository;
     private final RefrigeratorRepository refrigeratorRepository;
+    private final RabbitMQProducer rabbitMQProducer;
 
     @Override
     public IngredientAddResponse addIngredient(IngredientAddRequest request) {
@@ -75,5 +77,24 @@ public class IngredientServiceImpl implements IngredientService {
 
     private boolean isNotValidIngredientType(IngredientType ingredientType) {
         return !Arrays.asList(IngredientType.values()).contains(ingredientType);
+    }
+
+    // 냉장고 재료 여부 확인 및 Message Queue 로 메시지 전공
+    @Override
+    public CheckAndSendMessageResponse checkAndSendMessage(CheckAndSendMessageRequest request) {
+        Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId())
+                .orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
+        List<IngredientType> sendIngredients = new ArrayList<>();
+
+        for (IngredientType ingredientType : request.ingredients()) {
+            boolean exists = ingredientRepository.findByRefrigeratorIdAndType(refrigerator.getId(), ingredientType).isPresent();
+            if (exists) {
+                sendIngredients.add(ingredientType);
+            } else {
+                throw new IngredientException(IngredientExceptionType.INGREDIENT_NOT_FOUND);
+            }
+        }
+        rabbitMQProducer.sendMessage(request.memberId(), sendIngredients);
+        return CheckAndSendMessageResponse.of(request.memberId(), refrigerator.getId(), sendIngredients);
     }
 }

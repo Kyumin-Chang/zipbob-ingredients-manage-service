@@ -13,4 +13,7 @@ public interface IngredientService {
     ExpiredIngredientResponse getExpiredIngredients(ExpiredIngredientRequest request);
 
     GetIngredientsByTypeResponse getIngredientsByType(GetIngredientsByTypeRequest request);
+
+    // 냉장고 재료 여부 확인 및 Queue에 메시지 전공
+    CheckAndSendMessageResponse checkAndSendMessage(CheckAndSendMessageRequest request);
 }
