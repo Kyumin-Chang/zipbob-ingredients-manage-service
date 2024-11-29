@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,12 +48,12 @@ class IngredientServiceImplTest {
 
     @Test
     @DisplayName("재료 추가 - 냉장고에 새로운 재료를 추가하면 저장")
-    void addIngredient_ShouldAddIngredientToRefrigerator() {
+    void addIngredient_ShouldAddIngredientToRefrigerator() throws AccessDeniedException {
         // Given
         IngredientAddRequest request = new IngredientAddRequest(5L, IngredientType.EGG, 10, UnitType.PIECE, LocalDate.now().plusDays(7));
 
         // When
-        IngredientAddResponse response = ingredientService.addIngredient(request);
+        IngredientAddResponse response = ingredientService.addIngredient(request, 5L);
 
         // Then
         assertNotNull(response);
@@ -77,7 +78,7 @@ class IngredientServiceImplTest {
         IngredientRequest request = new IngredientRequest(5L, IngredientType.MILK);
 
         // When
-        IngredientDeleteResponse response = ingredientService.deleteIngredient(request);
+        IngredientDeleteResponse response = ingredientService.deleteIngredient(request, 5L);
 
         // Then
         assertNotNull(response);
@@ -102,7 +103,7 @@ class IngredientServiceImplTest {
         UpdateQuantityRequest request = new UpdateQuantityRequest(5L, IngredientType.CARROT, 10);
 
         // When
-        UpdateQuantityResponse response = ingredientService.updateQuantity(request);
+        UpdateQuantityResponse response = ingredientService.updateQuantity(request, 5L);
 
         // Then
         assertNotNull(response);
@@ -136,7 +137,7 @@ class IngredientServiceImplTest {
         ExpiredIngredientRequest request = new ExpiredIngredientRequest(5L);
 
         // When
-        ExpiredIngredientResponse response = ingredientService.getExpiredIngredients(request);
+        ExpiredIngredientResponse response = ingredientService.getExpiredIngredients(request, 5L);
 
         // Then
         assertNotNull(response);

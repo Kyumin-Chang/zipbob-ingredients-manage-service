@@ -11,6 +11,8 @@ import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.Refrigerator;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.exception.RefrigeratorException;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.exception.RefrigeratorExceptionType;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.repository.RefrigeratorRepository;
+import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationException;
+import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationExceptionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -30,7 +33,8 @@ public class IngredientServiceImpl implements IngredientService {
     private final RabbitMQProducer rabbitMQProducer;
 
     @Override
-    public IngredientAddResponse addIngredient(IngredientAddRequest request) {
+    public IngredientAddResponse addIngredient(IngredientAddRequest request, Long authenticatedMemberId) {
+        validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
         if (isNotValidIngredientType(request.ingredientType())) {
             throw new IngredientException(IngredientExceptionType.INGREDIENT_NAME_ERROR);
@@ -44,7 +48,8 @@ public class IngredientServiceImpl implements IngredientService {
     }
 
     @Override
-    public IngredientDeleteResponse deleteIngredient(IngredientRequest request) {
+    public IngredientDeleteResponse deleteIngredient(IngredientRequest request, Long authenticatedMemberId) {
+        validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
         if (isNotValidIngredientType(request.ingredientType())) {
             throw new IngredientException(IngredientExceptionType.INGREDIENT_NAME_ERROR);
@@ -55,7 +60,8 @@ public class IngredientServiceImpl implements IngredientService {
     }
 
     @Override
-    public UpdateQuantityResponse updateQuantity(UpdateQuantityRequest request) {
+    public UpdateQuantityResponse updateQuantity(UpdateQuantityRequest request, Long authenticatedMemberId) {
+        validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
         Ingredient ingredient = ingredientRepository.findByRefrigeratorIdAndType(refrigerator.getId(), request.ingredientType()).orElseThrow(() -> new IngredientException(IngredientExceptionType.INGREDIENT_NOT_FOUND));
         ingredient.updateQuantity(request.quantity());
@@ -63,7 +69,8 @@ public class IngredientServiceImpl implements IngredientService {
     }
 
     @Override
-    public ExpiredIngredientResponse getExpiredIngredients(ExpiredIngredientRequest request) {
+    public ExpiredIngredientResponse getExpiredIngredients(ExpiredIngredientRequest request, Long authenticatedMemberId) {
+        validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
         List<Ingredient> expiredIngredients = ingredientRepository.findByRefrigeratorId(refrigerator.getId()).stream().filter(ingredient -> ingredient.getExpiredDate().isBefore(LocalDate.now())).toList();
         return ExpiredIngredientResponse.of(refrigerator.getId(), expiredIngredients);
@@ -81,7 +88,8 @@ public class IngredientServiceImpl implements IngredientService {
 
     // 냉장고 재료 여부 확인 및 Message Queue 로 메시지 전공
     @Override
-    public CheckAndSendMessageResponse checkAndSendMessage(CheckAndSendMessageRequest request) {
+    public CheckAndSendMessageResponse checkAndSendMessage(CheckAndSendMessageRequest request, Long authenticatedMemberId) {
+        validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId())
                 .orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
         List<IngredientType> sendIngredients = new ArrayList<>();
@@ -96,5 +104,11 @@ public class IngredientServiceImpl implements IngredientService {
         }
         rabbitMQProducer.sendMessage(request.memberId(), sendIngredients);
         return CheckAndSendMessageResponse.of(request.memberId(), refrigerator.getId(), sendIngredients);
+    }
+
+    private void validationMember(Long memberId, Long authenticatedMemberId) {
+        if (!Objects.equals(memberId, authenticatedMemberId)) {
+            throw new CustomAuthenticationException(CustomAuthenticationExceptionType.AUTHENTICATION_DENIED);
+        }
     }
 }

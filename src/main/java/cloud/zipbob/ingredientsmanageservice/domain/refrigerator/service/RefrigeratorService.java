@@ -6,9 +6,9 @@ import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.response.Refrig
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.response.RefrigeratorWithIngredientsResponse;
 
 public interface RefrigeratorService {
-    RefrigeratorResponse createRefrigerator(RefrigeratorCreateRequest request);
+    RefrigeratorResponse createRefrigerator(RefrigeratorCreateRequest request, Long authenticatedMemberId);
 
-    RefrigeratorResponse deleteRefrigerator(RefrigeratorRequest request);
+    RefrigeratorResponse deleteRefrigerator(RefrigeratorRequest request, Long authenticatedMemberId);
 
-    RefrigeratorWithIngredientsResponse getRefrigerator(RefrigeratorRequest request);
+    RefrigeratorWithIngredientsResponse getRefrigerator(RefrigeratorRequest request, Long authenticatedMemberId);
 }

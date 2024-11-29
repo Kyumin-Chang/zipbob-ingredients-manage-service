@@ -17,20 +17,20 @@ public class IngredientController {
     private final IngredientService ingredientService;
 
     @PostMapping("")
-    public ResponseEntity<IngredientAddResponse> addIngredient(final @RequestBody IngredientAddRequest request) {
-        IngredientAddResponse response = ingredientService.addIngredient(request);
+    public ResponseEntity<IngredientAddResponse> addIngredient(final @RequestBody IngredientAddRequest request, @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
+        IngredientAddResponse response = ingredientService.addIngredient(request, authenticatedMemberId);
         return Responder.success(response);
     }
 
     @DeleteMapping("")
-    public ResponseEntity<IngredientDeleteResponse> deleteIngredient(final @RequestBody IngredientRequest request) {
-        IngredientDeleteResponse response = ingredientService.deleteIngredient(request);
+    public ResponseEntity<IngredientDeleteResponse> deleteIngredient(final @RequestBody IngredientRequest request, @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
+        IngredientDeleteResponse response = ingredientService.deleteIngredient(request, authenticatedMemberId);
         return Responder.success(response);
     }
 
     @PatchMapping("/update")
-    public ResponseEntity<UpdateQuantityResponse> updateQuantity(final @RequestBody UpdateQuantityRequest request) {
-        UpdateQuantityResponse response = ingredientService.updateQuantity(request);
+    public ResponseEntity<UpdateQuantityResponse> updateQuantity(final @RequestBody UpdateQuantityRequest request, @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
+        UpdateQuantityResponse response = ingredientService.updateQuantity(request, authenticatedMemberId);
         return Responder.success(response);
     }
 
@@ -45,14 +45,14 @@ public class IngredientController {
     }
 
     @GetMapping("/expired")
-    public ResponseEntity<ExpiredIngredientResponse> getExpiredIngredients(final @RequestBody ExpiredIngredientRequest request) {
-        ExpiredIngredientResponse response = ingredientService.getExpiredIngredients(request);
+    public ResponseEntity<ExpiredIngredientResponse> getExpiredIngredients(final @RequestBody ExpiredIngredientRequest request, @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
+        ExpiredIngredientResponse response = ingredientService.getExpiredIngredients(request, authenticatedMemberId);
         return Responder.success(response);
     }
 
     @PostMapping("/recipeRecommend")
-    public ResponseEntity<CheckAndSendMessageResponse> checkAndSendMessage(final @RequestBody CheckAndSendMessageRequest request) {
-        CheckAndSendMessageResponse response = ingredientService.checkAndSendMessage(request);
+    public ResponseEntity<CheckAndSendMessageResponse> checkAndSendMessage(final @RequestBody CheckAndSendMessageRequest request, @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
+        CheckAndSendMessageResponse response = ingredientService.checkAndSendMessage(request, authenticatedMemberId);
         return Responder.success(response);
     }
 }

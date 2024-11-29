@@ -73,6 +73,7 @@ class RefrigeratorControllerTest {
         RefrigeratorCreateRequest request = new RefrigeratorCreateRequest(3L);
 
         mockMvc.perform(post("/refrigerators")
+                        .header("X-Member-Id", 3L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -85,6 +86,7 @@ class RefrigeratorControllerTest {
         RefrigeratorCreateRequest request = new RefrigeratorCreateRequest(memberIdWithIngredients);
 
         mockMvc.perform(post("/refrigerators")
+                        .header("X-Member-Id", memberIdWithIngredients)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
@@ -97,6 +99,7 @@ class RefrigeratorControllerTest {
         RefrigeratorRequest request = new RefrigeratorRequest(memberIdWithIngredients);
 
         mockMvc.perform(get("/refrigerators")
+                        .header("X-Member-Id", memberIdWithIngredients)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -110,6 +113,7 @@ class RefrigeratorControllerTest {
         RefrigeratorRequest request = new RefrigeratorRequest(memberIdWithoutIngredients);
 
         mockMvc.perform(get("/refrigerators")
+                        .header("X-Member-Id", memberIdWithoutIngredients)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -123,6 +127,7 @@ class RefrigeratorControllerTest {
         RefrigeratorRequest request = new RefrigeratorRequest(memberIdWithoutIngredients);
 
         mockMvc.perform(delete("/refrigerators")
+                        .header("X-Member-Id", memberIdWithoutIngredients)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -130,6 +135,7 @@ class RefrigeratorControllerTest {
 
         // 삭제 후 확인
         mockMvc.perform(get("/refrigerators")
+                        .header("X-Member-Id", memberIdWithoutIngredients)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -141,6 +147,7 @@ class RefrigeratorControllerTest {
         RefrigeratorRequest request = new RefrigeratorRequest(999L);
 
         mockMvc.perform(get("/refrigerators")
+                        .header("X-Member-Id", 999L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -153,6 +160,7 @@ class RefrigeratorControllerTest {
         RefrigeratorRequest request = new RefrigeratorRequest(999L);
 
         mockMvc.perform(delete("/refrigerators")
+                        .header("X-Member-Id", 999L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
