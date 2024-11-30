@@ -17,20 +17,20 @@ public class RefrigeratorController {
     private final RefrigeratorService refrigeratorService;
 
     @PostMapping("")
-    public ResponseEntity<RefrigeratorResponse> createRefrigerator(final @RequestBody RefrigeratorCreateRequest request) {
-        RefrigeratorResponse response = refrigeratorService.createRefrigerator(request);
+    public ResponseEntity<RefrigeratorResponse> createRefrigerator(final @RequestBody RefrigeratorCreateRequest request, @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
+        RefrigeratorResponse response = refrigeratorService.createRefrigerator(request, authenticatedMemberId);
         return Responder.success(response);
     }
 
     @GetMapping("")
-    public ResponseEntity<RefrigeratorWithIngredientsResponse> getRefrigerator(final @RequestBody RefrigeratorRequest request) {
-        RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(request);
+    public ResponseEntity<RefrigeratorWithIngredientsResponse> getRefrigerator(final @RequestBody RefrigeratorRequest request, @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
+        RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(request, authenticatedMemberId);
         return Responder.success(response);
     }
 
     @DeleteMapping("")
-    public ResponseEntity<RefrigeratorResponse> deleteRefrigerator(final @RequestBody RefrigeratorRequest request) {
-        RefrigeratorResponse response = refrigeratorService.deleteRefrigerator(request);
+    public ResponseEntity<RefrigeratorResponse> deleteRefrigerator(final @RequestBody RefrigeratorRequest request, @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
+        RefrigeratorResponse response = refrigeratorService.deleteRefrigerator(request, authenticatedMemberId);
         return Responder.success(response);
     }
 }

@@ -71,6 +71,7 @@ class IngredientControllerTest {
 
         // When & Then
         mockMvc.perform(post("/ingredients")
+                        .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -96,6 +97,7 @@ class IngredientControllerTest {
 
         // When & Then
         mockMvc.perform(delete("/ingredients")
+                        .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -111,6 +113,7 @@ class IngredientControllerTest {
 
         // When & Then
         mockMvc.perform(delete("/ingredients")
+                        .header("X-Member-Id", 99L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -125,6 +128,7 @@ class IngredientControllerTest {
 
         // When & Then
         mockMvc.perform(delete("/ingredients")
+                        .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -148,6 +152,7 @@ class IngredientControllerTest {
 
         // When & Then
         mockMvc.perform(patch("/ingredients/update")
+                        .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -173,6 +178,7 @@ class IngredientControllerTest {
 
         // When & Then
         mockMvc.perform(get("/ingredients/expired")
+                        .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -218,6 +224,7 @@ class IngredientControllerTest {
         );
 
         mockMvc.perform(post("/ingredients")
+                        .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(addRequest)))
                 .andExpect(status().isOk())
@@ -225,6 +232,7 @@ class IngredientControllerTest {
                 .andExpect(jsonPath("$.type").value("MILK"));
 
         mockMvc.perform(post("/ingredients")
+                        .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(addRequest2)))
                 .andExpect(status().isOk())
@@ -238,6 +246,7 @@ class IngredientControllerTest {
 
         // When & Then
         mockMvc.perform(post("/ingredients/recipeRecommend")
+                        .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

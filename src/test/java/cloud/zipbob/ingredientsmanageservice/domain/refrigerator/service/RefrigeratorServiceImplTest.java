@@ -71,7 +71,7 @@ class RefrigeratorServiceImplTest {
         RefrigeratorCreateRequest request = new RefrigeratorCreateRequest(3L);
 
         // When
-        RefrigeratorResponse response = refrigeratorService.createRefrigerator(request);
+        RefrigeratorResponse response = refrigeratorService.createRefrigerator(request, 3L);
 
         // Then
         Refrigerator saved = refrigeratorRepository.findById(response.getRefrigeratorId()).orElse(null);
@@ -87,7 +87,7 @@ class RefrigeratorServiceImplTest {
 
         // When & Then
         RefrigeratorException exception = assertThrows(RefrigeratorException.class, () ->
-                refrigeratorService.createRefrigerator(request)
+                refrigeratorService.createRefrigerator(request, 1L)
         );
 
         assertEquals(RefrigeratorExceptionType.ALREADY_EXIST_REFRIGERATOR, exception.getExceptionType());
@@ -100,7 +100,7 @@ class RefrigeratorServiceImplTest {
         RefrigeratorRequest request = new RefrigeratorRequest(memberIdWithIngredients);
 
         // When
-        RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(request);
+        RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(request, 1L);
 
         // Then
         assertEquals(memberIdWithIngredients, response.getMemberId());
@@ -116,7 +116,7 @@ class RefrigeratorServiceImplTest {
         RefrigeratorRequest request = new RefrigeratorRequest(memberIdWithoutIngredients);
 
         // When
-        RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(request);
+        RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(request, 2L);
 
         // Then
         assertEquals(memberIdWithoutIngredients, response.getMemberId());
@@ -131,7 +131,7 @@ class RefrigeratorServiceImplTest {
         RefrigeratorRequest request = new RefrigeratorRequest(memberIdWithoutIngredients);
 
         // When
-        RefrigeratorResponse response = refrigeratorService.deleteRefrigerator(request);
+        RefrigeratorResponse response = refrigeratorService.deleteRefrigerator(request, 2L);
 
         // Then
         assertFalse(refrigeratorRepository.existsById(response.getRefrigeratorId()));
@@ -146,7 +146,7 @@ class RefrigeratorServiceImplTest {
 
         // When & Then
         RefrigeratorException exception = assertThrows(RefrigeratorException.class, () ->
-                refrigeratorService.getRefrigerator(request)
+                refrigeratorService.getRefrigerator(request, 999L)
         );
 
         assertEquals(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND, exception.getExceptionType());
@@ -160,7 +160,7 @@ class RefrigeratorServiceImplTest {
 
         // When & Then
         RefrigeratorException exception = assertThrows(RefrigeratorException.class, () ->
-                refrigeratorService.deleteRefrigerator(request)
+                refrigeratorService.deleteRefrigerator(request, 999L)
         );
 
         assertEquals(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND, exception.getExceptionType());
