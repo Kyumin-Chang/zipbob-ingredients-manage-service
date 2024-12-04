@@ -32,7 +32,7 @@ public class RefrigeratorRepositoryTest {
     @BeforeAll
     @Transactional
     public void setUp() {
-        for (int i = 1; i <= 100; i++) {
+        for (int i = 10; i <= 100; i++) {
             Refrigerator refrigerator = Refrigerator.builder()
                     .memberId((long) i)
                     .build();
