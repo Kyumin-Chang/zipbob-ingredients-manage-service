@@ -1,14 +1,29 @@
 package cloud.zipbob.ingredientsmanageservice.api;
 
+import static org.mockito.Mockito.times;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.Ingredient;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.IngredientType;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.UnitType;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.repository.IngredientRepository;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.*;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.CheckAndSendMessageRequest;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.ExpiredIngredientRequest;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.GetIngredientsByTypeRequest;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientAddRequest;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientRequest;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.UpdateQuantityRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.service.RabbitMQProducer;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.Refrigerator;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.repository.RefrigeratorRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,22 +34,33 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.util.List;
-
-import static org.mockito.Mockito.times;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.testcontainers.containers.MariaDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
+@Testcontainers
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @Transactional
 class IngredientControllerTest {
+
+    @Container
+    static final MariaDBContainer<?> mariadbContainer = new MariaDBContainer<>("mariadb:latest")
+            .withDatabaseName("testdb")
+            .withUsername("testuser")
+            .withPassword("testpass");
+
+    @DynamicPropertySource
+    static void configureTestDatabase(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", mariadbContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", mariadbContainer::getUsername);
+        registry.add("spring.datasource.password", mariadbContainer::getPassword);
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -67,7 +93,8 @@ class IngredientControllerTest {
     @DisplayName("재료 추가 - 새로운 재료가 성공적으로 추가")
     void addIngredient_ShouldReturnSuccessResponse() throws Exception {
         // Given
-        IngredientAddRequest request = new IngredientAddRequest(10L, IngredientType.EGG, 10, UnitType.PIECE, LocalDate.now().plusDays(7));
+        IngredientAddRequest request = new IngredientAddRequest(10L, IngredientType.EGG, 10, UnitType.PIECE,
+                LocalDate.now().plusDays(7));
 
         // When & Then
         mockMvc.perform(post("/ingredients")
@@ -200,7 +227,8 @@ class IngredientControllerTest {
                 .andExpect(jsonPath("$.ingredients").isArray())
                 .andExpect(jsonPath("$.ingredients").value(org.hamcrest.Matchers.hasItem("EGG")))
                 .andExpect(jsonPath("$.ingredients").value(org.hamcrest.Matchers.hasItem("CHICKEN")))
-                .andExpect(jsonPath("$.ingredients").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("SALT"))));
+                .andExpect(jsonPath("$.ingredients").value(
+                        org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("SALT"))));
     }
 
     @Test

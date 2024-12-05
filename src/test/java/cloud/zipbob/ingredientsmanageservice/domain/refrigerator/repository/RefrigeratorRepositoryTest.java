@@ -5,21 +5,47 @@ import cloud.zipbob.ingredientsmanageservice.domain.ingredient.IngredientType;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.UnitType;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.repository.IngredientRepository;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.Refrigerator;
-import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.MariaDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
+@Testcontainers
 @Transactional
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RefrigeratorRepositoryTest {
+
+    @Container
+    static final MariaDBContainer<?> mariadbContainer = new MariaDBContainer<>("mariadb:latest")
+            .withDatabaseName("testdb")
+            .withUsername("testuser")
+            .withPassword("testpass");
+
+    @DynamicPropertySource
+    static void configureTestDatabase(DynamicPropertyRegistry registry) {
+        if (!mariadbContainer.isRunning()) {
+            mariadbContainer.start();
+        }
+        registry.add("spring.datasource.url", mariadbContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", mariadbContainer::getUsername);
+        registry.add("spring.datasource.password", mariadbContainer::getPassword);
+    }
 
     @Autowired
     private RefrigeratorRepository refrigeratorRepository;

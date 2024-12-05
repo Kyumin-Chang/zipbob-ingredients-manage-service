@@ -1,5 +1,11 @@
 package cloud.zipbob.ingredientsmanageservice.api;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.Ingredient;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.IngredientType;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.UnitType;
@@ -9,6 +15,7 @@ import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.repository.Refr
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.request.RefrigeratorCreateRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.request.RefrigeratorRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,20 +24,33 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.testcontainers.containers.MariaDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
+@Testcontainers
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @Transactional
 class RefrigeratorControllerTest {
+
+    @Container
+    static final MariaDBContainer<?> mariadbContainer = new MariaDBContainer<>("mariadb:latest")
+            .withDatabaseName("testdb")
+            .withUsername("testuser")
+            .withPassword("testpass");
+
+    @DynamicPropertySource
+    static void configureTestDatabase(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", mariadbContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", mariadbContainer::getUsername);
+        registry.add("spring.datasource.password", mariadbContainer::getPassword);
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -42,7 +62,8 @@ class RefrigeratorControllerTest {
     private static final Long memberIdWithoutIngredients = 2L;
 
     @BeforeAll
-    static void setUp(@Autowired RefrigeratorRepository refrigeratorRepository, @Autowired IngredientRepository ingredientRepository) {
+    static void setUp(@Autowired RefrigeratorRepository refrigeratorRepository,
+                      @Autowired IngredientRepository ingredientRepository) {
         Refrigerator refrigeratorWithIngredients = refrigeratorRepository.save(
                 Refrigerator.builder()
                         .memberId(memberIdWithIngredients)
