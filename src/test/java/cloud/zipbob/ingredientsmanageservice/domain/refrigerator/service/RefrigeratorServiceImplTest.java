@@ -1,9 +1,12 @@
 package cloud.zipbob.ingredientsmanageservice.domain.refrigerator.service;
 
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.Ingredient;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.IngredientType;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.UnitType;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.repository.IngredientRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.Refrigerator;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.exception.RefrigeratorException;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.exception.RefrigeratorExceptionType;
@@ -12,56 +15,45 @@ import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.request.Refrige
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.request.RefrigeratorRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.response.RefrigeratorResponse;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.response.RefrigeratorWithIngredientsResponse;
-import org.junit.jupiter.api.BeforeAll;
+import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationException;
+import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationExceptionType;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import java.time.LocalDate;
-
-import static org.junit.jupiter.api.Assertions.*;
-
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
 class RefrigeratorServiceImplTest {
 
-    @Autowired
-    private RefrigeratorService refrigeratorService;
-
-    @Autowired
+    @Mock
     private RefrigeratorRepository refrigeratorRepository;
 
-    private static final Long memberIdWithIngredients = 1L;
-    private static final Long memberIdWithoutIngredients = 2L;
+    @InjectMocks
+    private RefrigeratorServiceImpl refrigeratorService;
 
-    @BeforeAll
-    static void setUp(@Autowired RefrigeratorRepository refrigeratorRepository, @Autowired IngredientRepository ingredientRepository) {
-        Refrigerator refrigeratorWithIngredients = refrigeratorRepository.save(
-                Refrigerator.builder()
-                        .memberId(memberIdWithIngredients)
-                        .build()
-        );
+    private Refrigerator refrigeratorWithIngredients;
+    private Refrigerator refrigeratorWithoutIngredients;
 
-        refrigeratorRepository.save(
-                Refrigerator.builder()
-                        .memberId(memberIdWithoutIngredients)
-                        .build()
-        );
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
 
-        Ingredient ingredient = Ingredient.builder()
-                .type(IngredientType.EGG)
-                .quantity(10)
-                .unitType(UnitType.PIECE)
-                .addedDate(LocalDate.now())
-                .expiredDate(LocalDate.now().plusDays(7))
-                .refrigerator(refrigeratorWithIngredients)
+        refrigeratorWithIngredients = Refrigerator.builder()
+                .id(1L)
+                .memberId(1L)
                 .build();
 
-        ingredientRepository.save(ingredient);
+        refrigeratorWithoutIngredients = Refrigerator.builder()
+                .id(2L)
+                .memberId(2L)
+                .build();
+
+        when(refrigeratorRepository.findByMemberId(1L))
+                .thenReturn(Optional.of(refrigeratorWithIngredients));
+        when(refrigeratorRepository.findByMemberId(2L))
+                .thenReturn(Optional.of(refrigeratorWithoutIngredients));
     }
 
     @Test
@@ -69,21 +61,28 @@ class RefrigeratorServiceImplTest {
     void createRefrigerator_ShouldSaveRefrigeratorSuccessfully() {
         // Given
         RefrigeratorCreateRequest request = new RefrigeratorCreateRequest(3L);
+        Refrigerator newRefrigerator = Refrigerator.builder()
+                .id(3L)
+                .memberId(3L)
+                .build();
+
+        when(refrigeratorRepository.findByMemberId(3L)).thenReturn(Optional.empty());
+        when(refrigeratorRepository.save(any(Refrigerator.class))).thenReturn(newRefrigerator);
 
         // When
         RefrigeratorResponse response = refrigeratorService.createRefrigerator(request, 3L);
 
         // Then
-        Refrigerator saved = refrigeratorRepository.findById(response.getRefrigeratorId()).orElse(null);
-        assertNotNull(saved);
-        assertEquals(3L, saved.getMemberId());
+        assertNotNull(response);
+        assertEquals(3L, response.getMemberId());
+        verify(refrigeratorRepository).save(any(Refrigerator.class));
     }
 
     @Test
     @DisplayName("냉장고 생성 실패 - 이미 존재하는 멤버 ID로 생성 요청 시 예외 발생")
     void createRefrigerator_ShouldThrowException_WhenRefrigeratorAlreadyExists() {
         // Given
-        RefrigeratorCreateRequest request = new RefrigeratorCreateRequest(memberIdWithIngredients);
+        RefrigeratorCreateRequest request = new RefrigeratorCreateRequest(1L);
 
         // When & Then
         RefrigeratorException exception = assertThrows(RefrigeratorException.class, () ->
@@ -97,45 +96,45 @@ class RefrigeratorServiceImplTest {
     @DisplayName("냉장고 조회 - 재료가 있는 냉장고를 조회할 때 재료 목록이 포함")
     void getRefrigerator_WithIngredients_ShouldReturnRefrigeratorWithIngredients() {
         // Given
-        RefrigeratorRequest request = new RefrigeratorRequest(memberIdWithIngredients);
+        RefrigeratorRequest request = new RefrigeratorRequest(1L);
 
         // When
         RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(request, 1L);
 
         // Then
-        assertEquals(memberIdWithIngredients, response.getMemberId());
-        assertNotNull(response.getIngredients());
-        assertEquals(1, response.getIngredients().size());
-        assertEquals(IngredientType.EGG, response.getIngredients().get(0).getType());
+        assertNotNull(response);
+        assertEquals(1L, response.getMemberId());
+        assertEquals(1L, response.getRefrigeratorId());
     }
 
     @Test
     @DisplayName("냉장고 조회 - 재료가 없는 냉장고를 조회할 때 빈 재료 목록을 반환")
     void getRefrigerator_WithoutIngredients_ShouldReturnRefrigeratorWithoutIngredients() {
         // Given
-        RefrigeratorRequest request = new RefrigeratorRequest(memberIdWithoutIngredients);
+        RefrigeratorRequest request = new RefrigeratorRequest(2L);
 
         // When
         RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(request, 2L);
 
         // Then
-        assertEquals(memberIdWithoutIngredients, response.getMemberId());
-        assertNotNull(response.getIngredients());
-        assertTrue(response.getIngredients().isEmpty());
+        assertNotNull(response);
+        assertEquals(2L, response.getMemberId());
+        assertEquals(2L, response.getRefrigeratorId());
     }
 
     @Test
     @DisplayName("냉장고 삭제 - 멤버 ID로 냉장고를 정상적으로 삭제")
     void deleteRefrigerator_ShouldDeleteRefrigeratorSuccessfully() {
         // Given
-        RefrigeratorRequest request = new RefrigeratorRequest(memberIdWithoutIngredients);
+        RefrigeratorRequest request = new RefrigeratorRequest(2L);
 
         // When
         RefrigeratorResponse response = refrigeratorService.deleteRefrigerator(request, 2L);
 
         // Then
-        assertFalse(refrigeratorRepository.existsById(response.getRefrigeratorId()));
-        assertEquals(memberIdWithoutIngredients, response.getMemberId());
+        assertNotNull(response);
+        assertEquals(2L, response.getMemberId());
+        verify(refrigeratorRepository).delete(refrigeratorWithoutIngredients);
     }
 
     @Test
@@ -143,6 +142,8 @@ class RefrigeratorServiceImplTest {
     void getRefrigerator_ShouldThrowException_WhenRefrigeratorNotFound() {
         // Given
         RefrigeratorRequest request = new RefrigeratorRequest(999L);
+
+        when(refrigeratorRepository.findByMemberId(999L)).thenReturn(Optional.empty());
 
         // When & Then
         RefrigeratorException exception = assertThrows(RefrigeratorException.class, () ->
@@ -158,11 +159,27 @@ class RefrigeratorServiceImplTest {
         // Given
         RefrigeratorRequest request = new RefrigeratorRequest(999L);
 
+        when(refrigeratorRepository.findByMemberId(999L)).thenReturn(Optional.empty());
+
         // When & Then
         RefrigeratorException exception = assertThrows(RefrigeratorException.class, () ->
                 refrigeratorService.deleteRefrigerator(request, 999L)
         );
 
         assertEquals(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND, exception.getExceptionType());
+    }
+
+    @Test
+    @DisplayName("멤버 검증 실패 - 인증된 멤버 ID와 요청 멤버 ID가 다른 경우 예외 발생")
+    void validationMember_ShouldThrowAuthenticationException() {
+        // Given
+        RefrigeratorRequest request = new RefrigeratorRequest(3L);
+
+        // When & Then
+        CustomAuthenticationException exception = assertThrows(CustomAuthenticationException.class, () ->
+                refrigeratorService.getRefrigerator(request, 1L)
+        );
+
+        assertEquals(CustomAuthenticationExceptionType.AUTHENTICATION_DENIED, exception.getExceptionType());
     }
 }

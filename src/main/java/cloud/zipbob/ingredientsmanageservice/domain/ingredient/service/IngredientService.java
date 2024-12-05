@@ -15,6 +15,6 @@ public interface IngredientService {
 
     GetIngredientsByTypeResponse getIngredientsByType(GetIngredientsByTypeRequest request);
 
-    // 냉장고 재료 여부 확인 및 Queue에 메시지 전공
+    // 냉장고 재료 여부 확인 및 Queue에 메시지 전송
     CheckAndSendMessageResponse checkAndSendMessage(CheckAndSendMessageRequest request, Long authenticatedMemberId);
 }

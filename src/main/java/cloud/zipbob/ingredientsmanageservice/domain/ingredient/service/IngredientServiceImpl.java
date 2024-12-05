@@ -86,7 +86,7 @@ public class IngredientServiceImpl implements IngredientService {
         return !Arrays.asList(IngredientType.values()).contains(ingredientType);
     }
 
-    // 냉장고 재료 여부 확인 및 Message Queue 로 메시지 전공
+    // 냉장고 재료 여부 확인 및 Message Queue 로 메시지 전송
     @Override
     public CheckAndSendMessageResponse checkAndSendMessage(CheckAndSendMessageRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
