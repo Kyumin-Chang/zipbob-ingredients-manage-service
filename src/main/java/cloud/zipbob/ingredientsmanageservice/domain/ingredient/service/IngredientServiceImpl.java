@@ -114,20 +114,18 @@ public class IngredientServiceImpl implements IngredientService {
         validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId())
                 .orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
-        List<IngredientType> sendIngredients = new ArrayList<>();
-        List<UnitType> sendUnits = new ArrayList<>();
-        List<Integer> sendQuantities = new ArrayList<>();
+        List<String> sendIngredients = new ArrayList<>();
+        List<String> sendQuantities = new ArrayList<>();
 
         for (IngredientType ingredientType : request.ingredients()) {
             Ingredient ingredient = ingredientRepository.findByRefrigeratorIdAndType(refrigerator.getId(),
                             ingredientType)
                     .orElseThrow(() -> new IngredientException(IngredientExceptionType.INGREDIENT_NOT_FOUND));
-            sendIngredients.add(ingredient.getType());
-            sendUnits.add(ingredient.getUnitType());
-            sendQuantities.add(ingredient.getQuantity());
+            sendIngredients.add(ingredient.getType().getKoreanName());
+            sendQuantities.add(ingredient.getQuantity() + getUnitInKorean(ingredient.getUnitType()));
         }
-        rabbitMQProducer.sendMessage(request.memberId(), sendIngredients, sendUnits, sendQuantities);
-        return CheckAndSendMessageResponse.of(request.memberId(), refrigerator.getId(), sendIngredients, sendUnits,
+        rabbitMQProducer.sendMessage(sendIngredients, sendQuantities);
+        return CheckAndSendMessageResponse.of(request.memberId(), refrigerator.getId(), sendIngredients,
                 sendQuantities);
     }
 
@@ -135,5 +133,18 @@ public class IngredientServiceImpl implements IngredientService {
         if (!Objects.equals(memberId, authenticatedMemberId)) {
             throw new CustomAuthenticationException(CustomAuthenticationExceptionType.AUTHENTICATION_DENIED);
         }
+    }
+
+    //TODO: 재료 단위 한글 업데이트
+    private String getUnitInKorean(UnitType unitType) {
+        return switch (unitType) {
+            case GRAM -> "그램";
+            case LITER -> "리터";
+            case COUNT -> "개";
+            case MILLILITER -> "밀리리터";
+            case KILOGRAM -> "킬로그램";
+            case PIECE -> "조각";
+            default -> "";
+        };
     }
 }

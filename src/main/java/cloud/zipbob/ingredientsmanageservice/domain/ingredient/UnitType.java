@@ -1,6 +1,7 @@
 package cloud.zipbob.ingredientsmanageservice.domain.ingredient;
 
 public enum UnitType {
+    //TODO: 재료 단위 업데이트
     GRAM,       // 그램
     LITER,      // 리터
     COUNT,      // 개수

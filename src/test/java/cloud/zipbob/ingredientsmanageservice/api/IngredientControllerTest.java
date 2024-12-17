@@ -281,13 +281,14 @@ class IngredientControllerTest {
                 .andExpect(jsonPath("$.memberId").value(10L))
                 .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
                 .andExpect(jsonPath("$.message").value("큐에 메시지가 정상적으로 등록되었습니다."))
-                .andExpect(jsonPath("$.ingredients[0]").value("MILK"))
-                .andExpect(jsonPath("$.ingredients[1]").value("SALT"))
-                .andExpect(jsonPath("$.unitTypes[0]").value("MILLILITER"))
-                .andExpect(jsonPath("$.unitTypes[1]").value("GRAM"))
-                .andExpect(jsonPath("$.quantities[0]").value(10))
-                .andExpect(jsonPath("$.quantities[1]").value(10));
-        Mockito.verify(rabbitMQProducer, times(1)).sendMessage(10L, List.of(IngredientType.MILK, IngredientType.SALT),
-                List.of(UnitType.MILLILITER, UnitType.GRAM), List.of(10, 10));
+                .andExpect(jsonPath("$.ingredients[0]").value("우유"))
+                .andExpect(jsonPath("$.ingredients[1]").value("소금"))
+                .andExpect(jsonPath("$.quantities[0]").value("10밀리리터"))
+                .andExpect(jsonPath("$.quantities[1]").value("10그램"));
+
+        Mockito.verify(rabbitMQProducer, times(1)).sendMessage(
+                List.of(IngredientType.MILK.getKoreanName(), IngredientType.SALT.getKoreanName()),
+                List.of("10밀리리터", "10그램")
+        );
     }
 }
