@@ -2,13 +2,15 @@ package cloud.zipbob.ingredientsmanageservice.domain.ingredient;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.Getter;
 
 @Getter
 public enum IngredientType {
     //TODO: 재료 업데이트
-    
+
     // 주 재료
     EGG(Category.MAIN, "계란"),
     MILK(Category.MAIN, "우유"),
@@ -42,6 +44,16 @@ public enum IngredientType {
     public static List<IngredientType> getIngredientsByCategory(Category category) {
         return Arrays.stream(values())
                 .filter(type -> type.getCategory() == category)
+                .collect(Collectors.toList());
+    }
+
+    public static List<IngredientType> findByKoreanNames(List<String> koreanNames) {
+        Map<String, IngredientType> nameToTypeMap = Arrays.stream(values())
+                .collect(Collectors.toMap(IngredientType::getKoreanName, type -> type));
+
+        return koreanNames.stream()
+                .map(nameToTypeMap::get)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 

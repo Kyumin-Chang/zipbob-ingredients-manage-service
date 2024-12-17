@@ -17,6 +17,7 @@ import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.ExpiredIn
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.GetIngredientsByTypeRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientAddRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientRequest;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.RecipeSelectRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.UpdateQuantityRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.service.RabbitMQProducer;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.Refrigerator;
@@ -290,5 +291,108 @@ class IngredientControllerTest {
                 List.of(IngredientType.MILK.getKoreanName(), IngredientType.SALT.getKoreanName()),
                 List.of("10밀리리터", "10그램")
         );
+    }
+
+    @Test
+    @DisplayName("레시피 선택 및 재료 삭제 - 성공")
+    void selectRecipeAndDeleteIngredients_ShouldReturnSuccess() throws Exception {
+        // Given: 냉장고에 재료 추가
+        IngredientAddRequest addRequest = new IngredientAddRequest(
+                10L,
+                IngredientType.MILK,
+                10,
+                UnitType.MILLILITER,
+                LocalDate.now().plusDays(7)
+        );
+
+        IngredientAddRequest addRequest2 = new IngredientAddRequest(
+                10L,
+                IngredientType.SALT,
+                10,
+                UnitType.GRAM,
+                LocalDate.now().plusDays(7)
+        );
+
+        mockMvc.perform(post("/ingredients")
+                        .header("X-Member-Id", 10L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
+                .andExpect(jsonPath("$.type").value("MILK"));
+
+        mockMvc.perform(post("/ingredients")
+                        .header("X-Member-Id", 10L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addRequest2)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
+                .andExpect(jsonPath("$.type").value("SALT"));
+
+        RecipeSelectRequest request = new RecipeSelectRequest(
+                10L,
+                List.of("우유 5밀리리터", "소금 2그램")
+        );
+
+        // When & Then
+        mockMvc.perform(patch("/ingredients/recipeSelect")
+                        .header("X-Member-Id", 10L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.memberId").value(10L))
+                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
+                .andExpect(jsonPath("$.message").value("재료 업데이트가 완료되었습니다."));
+    }
+
+    @Test
+    @DisplayName("레시피 선택 및 재료 삭제 - 실패 (단위 오류)")
+    void selectRecipeAndDeleteIngredients_ShouldReturnFail_BecauseOfInvalidUnitType() throws Exception {
+        // Given: 냉장고에 재료 추가
+        IngredientAddRequest addRequest = new IngredientAddRequest(
+                10L,
+                IngredientType.MILK,
+                10,
+                UnitType.MILLILITER,
+                LocalDate.now().plusDays(7)
+        );
+
+        IngredientAddRequest addRequest2 = new IngredientAddRequest(
+                10L,
+                IngredientType.SALT,
+                10,
+                UnitType.GRAM,
+                LocalDate.now().plusDays(7)
+        );
+
+        mockMvc.perform(post("/ingredients")
+                        .header("X-Member-Id", 10L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
+                .andExpect(jsonPath("$.type").value("MILK"));
+
+        mockMvc.perform(post("/ingredients")
+                        .header("X-Member-Id", 10L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addRequest2)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
+                .andExpect(jsonPath("$.type").value("SALT"));
+
+        RecipeSelectRequest request = new RecipeSelectRequest(
+                10L,
+                List.of("우유 5리터", "소금 2그램")
+        );
+
+        // When & Then
+        mockMvc.perform(patch("/ingredients/recipeSelect")
+                        .header("X-Member-Id", 10L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode").value("I005"))
+                .andExpect(jsonPath("$.errorMessage").value("냉장고에 재료가 부족하거나 단위가 맞지 않습니다."));
     }
 }

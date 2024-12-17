@@ -11,12 +11,14 @@ import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.ExpiredIn
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.GetIngredientsByTypeRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientAddRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientRequest;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.RecipeSelectRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.UpdateQuantityRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.CheckAndSendMessageResponse;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.ExpiredIngredientResponse;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.GetIngredientsByTypeResponse;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.IngredientAddResponse;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.IngredientDeleteResponse;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.RecipeSelectResponse;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.UpdateQuantityResponse;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.Refrigerator;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.exception.RefrigeratorException;
@@ -27,8 +29,12 @@ import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticati
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,7 +113,6 @@ public class IngredientServiceImpl implements IngredientService {
         return !Arrays.asList(IngredientType.values()).contains(ingredientType);
     }
 
-    // 냉장고 재료 여부 확인 및 Message Queue 로 메시지 전송
     @Override
     public CheckAndSendMessageResponse checkAndSendMessage(CheckAndSendMessageRequest request,
                                                            Long authenticatedMemberId) {
@@ -122,11 +127,23 @@ public class IngredientServiceImpl implements IngredientService {
                             ingredientType)
                     .orElseThrow(() -> new IngredientException(IngredientExceptionType.INGREDIENT_NOT_FOUND));
             sendIngredients.add(ingredient.getType().getKoreanName());
-            sendQuantities.add(ingredient.getQuantity() + getUnitInKorean(ingredient.getUnitType()));
+            sendQuantities.add(ingredient.getQuantity() + ingredient.getUnitType().getKoreanName());
         }
         rabbitMQProducer.sendMessage(sendIngredients, sendQuantities);
         return CheckAndSendMessageResponse.of(request.memberId(), refrigerator.getId(), sendIngredients,
                 sendQuantities);
+    }
+
+    @Override
+    public RecipeSelectResponse selectRecipeAndDeleteQuantity(RecipeSelectRequest request, Long authenticatedMemberId) {
+        validationMember(request.memberId(), authenticatedMemberId);
+        Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId())
+                .orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
+
+        List<Map<String, Object>> parsedIngredients = parseIngredients(request.ingredientsAndQuantities());
+        updateIngredientsQuantity(refrigerator.getId(), parsedIngredients);
+
+        return RecipeSelectResponse.of(request.memberId(), refrigerator.getId());
     }
 
     private void validationMember(Long memberId, Long authenticatedMemberId) {
@@ -135,16 +152,47 @@ public class IngredientServiceImpl implements IngredientService {
         }
     }
 
-    //TODO: 재료 단위 한글 업데이트
-    private String getUnitInKorean(UnitType unitType) {
-        return switch (unitType) {
-            case GRAM -> "그램";
-            case LITER -> "리터";
-            case COUNT -> "개";
-            case MILLILITER -> "밀리리터";
-            case KILOGRAM -> "킬로그램";
-            case PIECE -> "조각";
-            default -> "";
-        };
+    private List<Map<String, Object>> parseIngredients(List<String> ingredientsAndQuantities) {
+        Pattern pattern = Pattern.compile("^(.+)\\s(\\d+)\\s*(.*)$");
+        List<Map<String, Object>> parsedIngredients = new ArrayList<>();
+
+        for (String entry : ingredientsAndQuantities) {
+            Matcher matcher = pattern.matcher(entry);
+            if (matcher.matches()) {
+                Map<String, Object> ingredientMap = new HashMap<>();
+                ingredientMap.put("name", matcher.group(1).trim());
+                ingredientMap.put("quantity", Integer.parseInt(matcher.group(2).trim()));
+                ingredientMap.put("unitType", UnitType.convertToUnit(matcher.group(3).trim()));
+                parsedIngredients.add(ingredientMap);
+            } else {
+                throw new IllegalArgumentException("Invalid format: " + entry);
+            }
+        }
+        return parsedIngredients;
+    }
+
+    private void updateIngredientsQuantity(Long refrigeratorId, List<Map<String, Object>> parsedIngredients) {
+        List<String> ingredientNames = parsedIngredients.stream()
+                .map(entry -> (String) entry.get("name"))
+                .toList();
+
+        List<IngredientType> ingredientTypes = IngredientType.findByKoreanNames(ingredientNames);
+
+        for (int i = 0; i < ingredientTypes.size(); i++) {
+            IngredientType type = ingredientTypes.get(i);
+            Map<String, Object> parsed = parsedIngredients.get(i);
+
+            Ingredient ingredient = ingredientRepository.findByRefrigeratorIdAndType(refrigeratorId, type)
+                    .orElseThrow(() -> new IngredientException(IngredientExceptionType.INGREDIENT_NOT_FOUND));
+
+            validateAndUpdateIngredient(ingredient, (UnitType) parsed.get("unitType"), (int) parsed.get("quantity"));
+        }
+    }
+
+    private void validateAndUpdateIngredient(Ingredient ingredient, UnitType unitType, int quantity) {
+        if (ingredient.getUnitType() != unitType || ingredient.getQuantity() < quantity) {
+            throw new IngredientException(IngredientExceptionType.INGREDIENT_DELETE_ERROR);
+        }
+        ingredient.updateQuantity(ingredient.getQuantity() - quantity);
     }
 }
