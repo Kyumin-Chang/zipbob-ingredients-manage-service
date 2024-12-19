@@ -14,10 +14,11 @@ import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.Ingredie
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.IngredientDeleteResponse;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.RecipeSelectResponse;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.UpdateQuantityResponse;
+import java.util.List;
 
 public interface IngredientService {
 
-    IngredientAddResponse addIngredient(IngredientAddRequest request, Long authenticatedMemberId);
+    List<IngredientAddResponse> addIngredient(IngredientAddRequest request, Long authenticatedMemberId);
 
     IngredientDeleteResponse deleteIngredient(IngredientRequest request, Long authenticatedMemberId);
 

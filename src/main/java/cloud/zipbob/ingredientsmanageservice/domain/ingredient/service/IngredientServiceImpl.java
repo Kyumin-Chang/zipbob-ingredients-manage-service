@@ -49,21 +49,33 @@ public class IngredientServiceImpl implements IngredientService {
     private final RabbitMQProducer rabbitMQProducer;
 
     @Override
-    public IngredientAddResponse addIngredient(IngredientAddRequest request, Long authenticatedMemberId) {
+    public List<IngredientAddResponse> addIngredient(IngredientAddRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
+
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId())
                 .orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
-        if (isNotValidIngredientType(request.ingredientType())) {
-            throw new IngredientException(IngredientExceptionType.INGREDIENT_NAME_ERROR);
+
+        List<Ingredient> ingredients = request.toEntities(refrigerator);
+
+        List<IngredientAddResponse> responses = new ArrayList<>();
+
+        for (Ingredient ingredient : ingredients) {
+            if (isNotValidIngredientType(ingredient.getType())) {
+                throw new IngredientException(IngredientExceptionType.INGREDIENT_NAME_ERROR);
+            }
+
+            if (ingredientRepository.findByRefrigeratorIdAndType(refrigerator.getId(), ingredient.getType())
+                    .isPresent()) {
+                throw new IngredientException(IngredientExceptionType.INGREDIENT_ALREADY_EXIST);
+            }
+
+            ingredientRepository.save(ingredient);
+            responses.add(IngredientAddResponse.of(ingredient));
         }
-        if (ingredientRepository.findByRefrigeratorIdAndType(refrigerator.getId(), request.ingredientType())
-                .isPresent()) {
-            throw new IngredientException(IngredientExceptionType.INGREDIENT_ALREADY_EXIST);
-        }
-        Ingredient ingredient = request.toEntity(refrigerator);
-        ingredientRepository.save(ingredient);
-        return IngredientAddResponse.of(ingredient);
+
+        return responses;
     }
+
 
     @Override
     public IngredientDeleteResponse deleteIngredient(IngredientRequest request, Long authenticatedMemberId) {

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.Ingredient;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.IngredientType;
@@ -60,35 +61,66 @@ class IngredientServiceImplTest {
     }
 
     @Test
-    @DisplayName("재료 추가 - 냉장고에 새로운 재료를 추가")
-    void addIngredient_ShouldAddIngredientToRefrigerator() {
+    @DisplayName("재료 추가 - 냉장고에 새로운 재료들을 추가")
+    void addIngredient_ShouldAddMultipleIngredientsToRefrigerator() {
         // Given
-        IngredientAddRequest request = new IngredientAddRequest(5L, IngredientType.EGG, 10, UnitType.PIECE,
-                LocalDate.now().plusDays(7));
+        IngredientAddRequest request = new IngredientAddRequest(
+                5L,
+                List.of(IngredientType.EGG, IngredientType.MILK),
+                List.of(10, 2),
+                List.of(UnitType.PIECE, UnitType.LITER),
+                List.of(LocalDate.now().plusDays(7), LocalDate.now().plusDays(5))
+        );
 
-        Ingredient ingredient = Ingredient.builder()
+        Ingredient eggIngredient = Ingredient.builder()
                 .id(1L)
+                .refrigerator(refrigerator)
                 .type(IngredientType.EGG)
                 .quantity(10)
                 .unitType(UnitType.PIECE)
-                .refrigerator(refrigerator)
-                .expiredDate(request.expiredDate())
+                .expiredDate(request.expiredDates().get(0))
                 .build();
 
+        Ingredient milkIngredient = Ingredient.builder()
+                .id(2L)
+                .refrigerator(refrigerator)
+                .type(IngredientType.MILK)
+                .quantity(2)
+                .unitType(UnitType.LITER)
+                .expiredDate(request.expiredDates().get(1))
+                .build();
+
+        when(refrigeratorRepository.findByMemberId(5L)).thenReturn(Optional.of(refrigerator));
         when(ingredientRepository.findByRefrigeratorIdAndType(refrigerator.getId(), IngredientType.EGG))
                 .thenReturn(Optional.empty());
-        when(ingredientRepository.save(any(Ingredient.class))).thenReturn(ingredient);
+        when(ingredientRepository.findByRefrigeratorIdAndType(refrigerator.getId(), IngredientType.MILK))
+                .thenReturn(Optional.empty());
+        when(ingredientRepository.save(any(Ingredient.class)))
+                .thenReturn(eggIngredient)
+                .thenReturn(milkIngredient);
 
         // When
-        IngredientAddResponse response = ingredientService.addIngredient(request, 5L);
+        List<IngredientAddResponse> responses = ingredientService.addIngredient(request, 5L);
 
         // Then
-        assertNotNull(response);
-        assertEquals(1L, response.getRefrigeratorId());
-        assertEquals(IngredientType.EGG, response.getType());
-        assertEquals(10, response.getQuantity());
-        verify(ingredientRepository).save(any(Ingredient.class));
+        assertNotNull(responses);
+        assertEquals(2, responses.size());
+
+        IngredientAddResponse eggResponse = responses.get(0);
+        assertEquals(1L, eggResponse.getRefrigeratorId());
+        assertEquals(IngredientType.EGG, eggResponse.getType());
+        assertEquals(10, eggResponse.getQuantity());
+        assertEquals(UnitType.PIECE, eggResponse.getUnitType());
+
+        IngredientAddResponse milkResponse = responses.get(1);
+        assertEquals(1L, milkResponse.getRefrigeratorId());
+        assertEquals(IngredientType.MILK, milkResponse.getType());
+        assertEquals(2, milkResponse.getQuantity());
+        assertEquals(UnitType.LITER, milkResponse.getUnitType());
+
+        verify(ingredientRepository, times(2)).save(any(Ingredient.class));
     }
+
 
     @Test
     @DisplayName("재료 삭제 - 냉장고에서 특정 재료 삭제")

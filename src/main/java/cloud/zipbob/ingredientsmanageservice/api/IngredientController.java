@@ -18,6 +18,7 @@ import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.RecipeSe
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.UpdateQuantityResponse;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.service.IngredientService;
 import cloud.zipbob.ingredientsmanageservice.global.Responder;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,9 +37,9 @@ public class IngredientController {
     private final IngredientService ingredientService;
 
     @PostMapping("")
-    public ResponseEntity<IngredientAddResponse> addIngredient(final @RequestBody IngredientAddRequest request,
-                                                               @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
-        IngredientAddResponse response = ingredientService.addIngredient(request, authenticatedMemberId);
+    public ResponseEntity<List<IngredientAddResponse>> addIngredient(final @RequestBody IngredientAddRequest request,
+                                                                     @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
+        List<IngredientAddResponse> response = ingredientService.addIngredient(request, authenticatedMemberId);
         return Responder.success(response);
     }
 

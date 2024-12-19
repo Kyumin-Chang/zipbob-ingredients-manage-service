@@ -91,11 +91,16 @@ class IngredientControllerTest {
     }
 
     @Test
-    @DisplayName("재료 추가 - 새로운 재료가 성공적으로 추가")
+    @DisplayName("재료 추가 - 새로운 재료들이 성공적으로 추가")
     void addIngredient_ShouldReturnSuccessResponse() throws Exception {
         // Given
-        IngredientAddRequest request = new IngredientAddRequest(10L, IngredientType.EGG, 10, UnitType.PIECE,
-                LocalDate.now().plusDays(7));
+        IngredientAddRequest request = new IngredientAddRequest(
+                10L,
+                List.of(IngredientType.EGG, IngredientType.MILK),
+                List.of(10, 2),
+                List.of(UnitType.PIECE, UnitType.LITER),
+                List.of(LocalDate.now().plusDays(7), LocalDate.now().plusDays(5))
+        );
 
         // When & Then
         mockMvc.perform(post("/ingredients")
@@ -103,10 +108,16 @@ class IngredientControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
-                .andExpect(jsonPath("$.type").value("EGG"))
-                .andExpect(jsonPath("$.quantity").value(10));
+                .andExpect(jsonPath("$[0].type").value("EGG"))
+                .andExpect(jsonPath("$[0].quantity").value(10))
+                .andExpect(jsonPath("$[0].unitType").value("PIECE"))
+                .andExpect(jsonPath("$[0].expiredDate").exists())
+                .andExpect(jsonPath("$[1].type").value("MILK"))
+                .andExpect(jsonPath("$[1].quantity").value(2))
+                .andExpect(jsonPath("$[1].unitType").value("LITER"))
+                .andExpect(jsonPath("$[1].expiredDate").exists());
     }
+
 
     @Test
     @DisplayName("재료 삭제 - 재료가 성공적으로 삭제")
@@ -236,60 +247,50 @@ class IngredientControllerTest {
     @DisplayName("재료 존재 여부 확인 및 RabbitMQ 메시지 전송 - 성공")
     void checkAndSendMessage_ShouldReturnSuccess() throws Exception {
         // Given: 냉장고에 재료 추가
-        IngredientAddRequest addRequest = new IngredientAddRequest(
+        IngredientAddRequest request = new IngredientAddRequest(
                 10L,
-                IngredientType.MILK,
-                10,
-                UnitType.MILLILITER,
-                LocalDate.now().plusDays(7)
-        );
-
-        IngredientAddRequest addRequest2 = new IngredientAddRequest(
-                10L,
-                IngredientType.SALT,
-                10,
-                UnitType.GRAM,
-                LocalDate.now().plusDays(7)
+                List.of(IngredientType.EGG, IngredientType.MILK),
+                List.of(10, 2),
+                List.of(UnitType.PIECE, UnitType.LITER),
+                List.of(LocalDate.now().plusDays(7), LocalDate.now().plusDays(5))
         );
 
         mockMvc.perform(post("/ingredients")
                         .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(addRequest)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
-                .andExpect(jsonPath("$.type").value("MILK"));
+                .andExpect(jsonPath("$[0].refrigeratorId").value(refrigeratorId))
+                .andExpect(jsonPath("$[0].type").value("EGG"))
+                .andExpect(jsonPath("$[0].quantity").value(10))
+                .andExpect(jsonPath("$[0].unitType").value("PIECE"))
+                .andExpect(jsonPath("$[0].expiredDate").exists())
+                .andExpect(jsonPath("$[1].type").value("MILK"))
+                .andExpect(jsonPath("$[1].quantity").value(2))
+                .andExpect(jsonPath("$[1].unitType").value("LITER"))
+                .andExpect(jsonPath("$[1].expiredDate").exists());
 
-        mockMvc.perform(post("/ingredients")
-                        .header("X-Member-Id", 10L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(addRequest2)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
-                .andExpect(jsonPath("$.type").value("SALT"));
-
-        CheckAndSendMessageRequest request = new CheckAndSendMessageRequest(
+        CheckAndSendMessageRequest request2 = new CheckAndSendMessageRequest(
                 10L,
-                List.of(IngredientType.MILK, IngredientType.SALT)
+                List.of(IngredientType.EGG, IngredientType.MILK)
         );
 
         // When & Then
         mockMvc.perform(post("/ingredients/recipeRecommend")
                         .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.memberId").value(10L))
-                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
                 .andExpect(jsonPath("$.message").value("큐에 메시지가 정상적으로 등록되었습니다."))
-                .andExpect(jsonPath("$.ingredients[0]").value("우유"))
-                .andExpect(jsonPath("$.ingredients[1]").value("소금"))
-                .andExpect(jsonPath("$.quantities[0]").value("10밀리리터"))
-                .andExpect(jsonPath("$.quantities[1]").value("10그램"));
+                .andExpect(jsonPath("$.ingredients[0]").value("계란"))
+                .andExpect(jsonPath("$.ingredients[1]").value("우유"))
+                .andExpect(jsonPath("$.quantities[0]").value("10조각"))
+                .andExpect(jsonPath("$.quantities[1]").value("2리터"));
 
         Mockito.verify(rabbitMQProducer, times(1)).sendMessage(
-                List.of(IngredientType.MILK.getKoreanName(), IngredientType.SALT.getKoreanName()),
-                List.of("10밀리리터", "10그램")
+                List.of(IngredientType.EGG.getKoreanName(), IngredientType.MILK.getKoreanName()),
+                List.of("10조각", "2리터")
         );
     }
 
@@ -297,51 +298,41 @@ class IngredientControllerTest {
     @DisplayName("레시피 선택 및 재료 삭제 - 성공")
     void selectRecipeAndDeleteIngredients_ShouldReturnSuccess() throws Exception {
         // Given: 냉장고에 재료 추가
-        IngredientAddRequest addRequest = new IngredientAddRequest(
+        IngredientAddRequest request = new IngredientAddRequest(
                 10L,
-                IngredientType.MILK,
-                10,
-                UnitType.MILLILITER,
-                LocalDate.now().plusDays(7)
-        );
-
-        IngredientAddRequest addRequest2 = new IngredientAddRequest(
-                10L,
-                IngredientType.SALT,
-                10,
-                UnitType.GRAM,
-                LocalDate.now().plusDays(7)
+                List.of(IngredientType.EGG, IngredientType.MILK),
+                List.of(10, 2),
+                List.of(UnitType.COUNT, UnitType.LITER),
+                List.of(LocalDate.now().plusDays(7), LocalDate.now().plusDays(5))
         );
 
         mockMvc.perform(post("/ingredients")
                         .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(addRequest)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
-                .andExpect(jsonPath("$.type").value("MILK"));
+                .andExpect(jsonPath("$[0].refrigeratorId").value(refrigeratorId))
+                .andExpect(jsonPath("$[0].type").value("EGG"))
+                .andExpect(jsonPath("$[0].quantity").value(10))
+                .andExpect(jsonPath("$[0].unitType").value("COUNT"))
+                .andExpect(jsonPath("$[0].expiredDate").exists())
+                .andExpect(jsonPath("$[1].type").value("MILK"))
+                .andExpect(jsonPath("$[1].quantity").value(2))
+                .andExpect(jsonPath("$[1].unitType").value("LITER"))
+                .andExpect(jsonPath("$[1].expiredDate").exists());
 
-        mockMvc.perform(post("/ingredients")
-                        .header("X-Member-Id", 10L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(addRequest2)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
-                .andExpect(jsonPath("$.type").value("SALT"));
-
-        RecipeSelectRequest request = new RecipeSelectRequest(
+        RecipeSelectRequest request2 = new RecipeSelectRequest(
                 10L,
-                List.of("우유 5밀리리터", "소금 2그램")
+                List.of("우유 1리터", "계란 2개")
         );
 
         // When & Then
         mockMvc.perform(patch("/ingredients/recipeSelect")
                         .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.memberId").value(10L))
-                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
                 .andExpect(jsonPath("$.message").value("재료 업데이트가 완료되었습니다."));
     }
 
@@ -349,39 +340,30 @@ class IngredientControllerTest {
     @DisplayName("레시피 선택 및 재료 삭제 - 실패 (단위 오류)")
     void selectRecipeAndDeleteIngredients_ShouldReturnFail_BecauseOfInvalidUnitType() throws Exception {
         // Given: 냉장고에 재료 추가
-        IngredientAddRequest addRequest = new IngredientAddRequest(
+        IngredientAddRequest request = new IngredientAddRequest(
                 10L,
-                IngredientType.MILK,
-                10,
-                UnitType.MILLILITER,
-                LocalDate.now().plusDays(7)
-        );
-
-        IngredientAddRequest addRequest2 = new IngredientAddRequest(
-                10L,
-                IngredientType.SALT,
-                10,
-                UnitType.GRAM,
-                LocalDate.now().plusDays(7)
+                List.of(IngredientType.EGG, IngredientType.MILK),
+                List.of(10, 2),
+                List.of(UnitType.PIECE, UnitType.LITER),
+                List.of(LocalDate.now().plusDays(7), LocalDate.now().plusDays(5))
         );
 
         mockMvc.perform(post("/ingredients")
                         .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(addRequest)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
-                .andExpect(jsonPath("$.type").value("MILK"));
+                .andExpect(jsonPath("$[0].refrigeratorId").value(refrigeratorId))
+                .andExpect(jsonPath("$[0].type").value("EGG"))
+                .andExpect(jsonPath("$[0].quantity").value(10))
+                .andExpect(jsonPath("$[0].unitType").value("PIECE"))
+                .andExpect(jsonPath("$[0].expiredDate").exists())
+                .andExpect(jsonPath("$[1].type").value("MILK"))
+                .andExpect(jsonPath("$[1].quantity").value(2))
+                .andExpect(jsonPath("$[1].unitType").value("LITER"))
+                .andExpect(jsonPath("$[1].expiredDate").exists());
 
-        mockMvc.perform(post("/ingredients")
-                        .header("X-Member-Id", 10L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(addRequest2)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.refrigeratorId").value(refrigeratorId))
-                .andExpect(jsonPath("$.type").value("SALT"));
-
-        RecipeSelectRequest request = new RecipeSelectRequest(
+        RecipeSelectRequest request2 = new RecipeSelectRequest(
                 10L,
                 List.of("우유 5리터", "소금 2그램")
         );
@@ -390,7 +372,7 @@ class IngredientControllerTest {
         mockMvc.perform(patch("/ingredients/recipeSelect")
                         .header("X-Member-Id", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request2)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.errorCode").value("I005"))
                 .andExpect(jsonPath("$.errorMessage").value("냉장고에 재료가 부족하거나 단위가 맞지 않습니다."));
