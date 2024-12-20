@@ -36,6 +36,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
     implementation 'org.springframework.cloud:spring-cloud-stream-binder-rabbit'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     testImplementation 'org.springframework.amqp:spring-rabbit-test'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
@@ -54,10 +55,14 @@ dependencyManagement {
     }
 }
 
-bootBuildImage{
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-parameters']
+}
+
+bootBuildImage {
     builder = "docker.io/paketobuildpacks/builder-jammy-base"
     imageName = "${project.name}"
-    environment = ["BP_JVM_VERSION" : "17.*"]
+    environment = ["BP_JVM_VERSION": "17.*"]
 
     docker {
         publishRegistry {

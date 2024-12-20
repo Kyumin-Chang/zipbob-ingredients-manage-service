@@ -6,38 +6,24 @@ import cloud.zipbob.ingredientsmanageservice.domain.ingredient.UnitType;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.exception.IngredientException;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.exception.IngredientExceptionType;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.repository.IngredientRepository;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.CheckAndSendMessageRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.ExpiredIngredientRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.GetIngredientsByTypeRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientAddRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.RecipeSelectRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.UpdateQuantityRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.CheckAndSendMessageResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.ExpiredIngredientResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.GetIngredientsByTypeResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.IngredientAddResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.IngredientDeleteResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.RecipeSelectResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.UpdateQuantityResponse;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.*;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.*;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.Refrigerator;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.exception.RefrigeratorException;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.exception.RefrigeratorExceptionType;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.repository.RefrigeratorRepository;
 import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationException;
 import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationExceptionType;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Transactional
@@ -78,6 +64,7 @@ public class IngredientServiceImpl implements IngredientService {
 
 
     @Override
+    @CacheEvict(value = "expiredIngredientsCache", key = "#root.args[1] != null ? #root.args[1] : 'defaultKey'")
     public IngredientDeleteResponse deleteIngredient(IngredientRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId())
@@ -105,6 +92,7 @@ public class IngredientServiceImpl implements IngredientService {
     }
 
     @Override
+    @Cacheable(value = "expiredIngredientsCache", key = "#root.args[1] != null ? #root.args[1] : 'defaultKey'")
     public ExpiredIngredientResponse getExpiredIngredients(ExpiredIngredientRequest request,
                                                            Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
@@ -116,6 +104,7 @@ public class IngredientServiceImpl implements IngredientService {
     }
 
     @Override
+    @Cacheable(value = "ingredientsTypeCache", key = "#root.args[0].category != null ? #root.args[0].category : 'defaultKey'")
     public GetIngredientsByTypeResponse getIngredientsByType(GetIngredientsByTypeRequest request) {
         List<IngredientType> ingredients = IngredientType.getIngredientsByCategory(request.category());
         return GetIngredientsByTypeResponse.of(ingredients);
