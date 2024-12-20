@@ -17,13 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Objects;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class RefrigeratorServiceImpl implements RefrigeratorService {
 
     private final RefrigeratorRepository refrigeratorRepository;
 
     @Override
+    @Transactional
     public RefrigeratorResponse createRefrigerator(RefrigeratorCreateRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = request.toEntity();
@@ -35,6 +35,7 @@ public class RefrigeratorServiceImpl implements RefrigeratorService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RefrigeratorWithIngredientsResponse getRefrigerator(RefrigeratorRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
@@ -42,6 +43,7 @@ public class RefrigeratorServiceImpl implements RefrigeratorService {
     }
 
     @Override
+    @Transactional
     public RefrigeratorResponse deleteRefrigerator(RefrigeratorRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
