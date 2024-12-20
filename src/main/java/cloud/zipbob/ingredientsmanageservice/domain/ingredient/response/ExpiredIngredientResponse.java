@@ -4,11 +4,12 @@ import cloud.zipbob.ingredientsmanageservice.domain.ingredient.Ingredient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class ExpiredIngredientResponse {
+public class ExpiredIngredientResponse implements Serializable {
     private Long refrigeratorId;
     private List<Ingredient> expiredIngredients;
 

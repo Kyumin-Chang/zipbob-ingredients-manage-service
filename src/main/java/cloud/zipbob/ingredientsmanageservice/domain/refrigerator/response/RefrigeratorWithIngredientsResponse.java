@@ -5,11 +5,12 @@ import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.Refrigerator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class RefrigeratorWithIngredientsResponse {
+public class RefrigeratorWithIngredientsResponse implements Serializable {
     private Long refrigeratorId;
     private Long memberId;
     private List<Ingredient> ingredients;
