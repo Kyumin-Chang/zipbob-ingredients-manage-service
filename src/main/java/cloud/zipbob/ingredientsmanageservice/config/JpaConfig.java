@@ -16,26 +16,32 @@ import java.util.Map;
 
 @Configuration
 @EnableJpaRepositories(
-        basePackages = "cloud.zipbob.ingredientsmanageservice.domain.ingredient.repository",
-        entityManagerFactoryRef = "ingredientsEntityManagerFactory",
-        transactionManagerRef = "ingredientsTransactionManager"
+        basePackages = {
+                "cloud.zipbob.ingredientsmanageservice.domain.ingredient.repository",
+                "cloud.zipbob.ingredientsmanageservice.domain.refrigerator.repository"
+        },
+        entityManagerFactoryRef = "masterEntityManagerFactory",
+        transactionManagerRef = "masterTransactionManager"
 )
-public class IngredientsJpaConfig {
+public class JpaConfig {
 
-    @Bean(name = "ingredientsEntityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean ingredientsEntityManagerFactory(
+    @Bean(name = "masterEntityManagerFactory")
+    public LocalContainerEntityManagerFactoryBean masterEntityManagerFactory(
             @Qualifier("routingDataSource") DataSource dataSource) {
         LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
         factory.setDataSource(dataSource);
-        factory.setPackagesToScan("cloud.zipbob.ingredientsmanageservice.domain.ingredient");
+        factory.setPackagesToScan(
+                "cloud.zipbob.ingredientsmanageservice.domain.ingredient",
+                "cloud.zipbob.ingredientsmanageservice.domain.refrigerator"
+        );
         factory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
         factory.setJpaPropertyMap(hibernateProperties());
         return factory;
     }
 
-    @Bean(name = "ingredientsTransactionManager")
-    public PlatformTransactionManager ingredientsTransactionManager(
-            @Qualifier("ingredientsEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
+    @Bean(name = "masterTransactionManager")
+    public PlatformTransactionManager masterTransactionManager(
+            @Qualifier("masterEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
         return new JpaTransactionManager(entityManagerFactory);
     }
 
