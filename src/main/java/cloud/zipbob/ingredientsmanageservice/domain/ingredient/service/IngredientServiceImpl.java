@@ -26,7 +26,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class IngredientServiceImpl implements IngredientService {
 
@@ -35,6 +34,7 @@ public class IngredientServiceImpl implements IngredientService {
     private final RabbitMQProducer rabbitMQProducer;
 
     @Override
+    @Transactional
     public List<IngredientAddResponse> addIngredient(IngredientAddRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
 
@@ -65,6 +65,7 @@ public class IngredientServiceImpl implements IngredientService {
 
     @Override
     @CacheEvict(value = "expiredIngredientsCache", key = "#root.args[1] != null ? #root.args[1] : 'defaultKey'")
+    @Transactional
     public IngredientDeleteResponse deleteIngredient(IngredientRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId())
@@ -80,6 +81,7 @@ public class IngredientServiceImpl implements IngredientService {
     }
 
     @Override
+    @Transactional
     public UpdateQuantityResponse updateQuantity(UpdateQuantityRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId())
@@ -93,6 +95,7 @@ public class IngredientServiceImpl implements IngredientService {
 
     @Override
     @Cacheable(value = "expiredIngredientsCache", key = "#root.args[1] != null ? #root.args[1] : 'defaultKey'")
+    @Transactional(readOnly = true)
     public ExpiredIngredientResponse getExpiredIngredients(ExpiredIngredientRequest request,
                                                            Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
@@ -105,6 +108,7 @@ public class IngredientServiceImpl implements IngredientService {
 
     @Override
     @Cacheable(value = "ingredientsTypeCache", key = "#root.args[0].category != null ? #root.args[0].category : 'defaultKey'")
+    @Transactional(readOnly = true)
     public GetIngredientsByTypeResponse getIngredientsByType(GetIngredientsByTypeRequest request) {
         List<IngredientType> ingredients = IngredientType.getIngredientsByCategory(request.category());
         return GetIngredientsByTypeResponse.of(ingredients);
@@ -115,6 +119,7 @@ public class IngredientServiceImpl implements IngredientService {
     }
 
     @Override
+    @Transactional
     public CheckAndSendMessageResponse checkAndSendMessage(CheckAndSendMessageRequest request,
                                                            Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
@@ -136,6 +141,7 @@ public class IngredientServiceImpl implements IngredientService {
     }
 
     @Override
+    @Transactional
     public RecipeSelectResponse selectRecipeAndDeleteQuantity(RecipeSelectRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId())

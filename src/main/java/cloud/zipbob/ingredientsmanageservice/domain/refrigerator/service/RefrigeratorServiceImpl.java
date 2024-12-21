@@ -19,13 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Objects;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class RefrigeratorServiceImpl implements RefrigeratorService {
 
     private final RefrigeratorRepository refrigeratorRepository;
 
     @Override
+    @Transactional
     public RefrigeratorResponse createRefrigerator(RefrigeratorCreateRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = request.toEntity();
@@ -38,6 +38,7 @@ public class RefrigeratorServiceImpl implements RefrigeratorService {
 
     @Override
     @Cacheable(value = "refrigeratorInfoCache", key = "#root.args[1] != null ? #root.args[1] : 'defaultKey'")
+    @Transactional(readOnly = true)
     public RefrigeratorWithIngredientsResponse getRefrigerator(RefrigeratorRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
@@ -45,6 +46,7 @@ public class RefrigeratorServiceImpl implements RefrigeratorService {
     }
 
     @Override
+    @Transactional
     @CacheEvict(value = "refrigeratorInfoCache", key = "#root.args[1] != null ? #root.args[1] : 'defaultKey'")
     public RefrigeratorResponse deleteRefrigerator(RefrigeratorRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
