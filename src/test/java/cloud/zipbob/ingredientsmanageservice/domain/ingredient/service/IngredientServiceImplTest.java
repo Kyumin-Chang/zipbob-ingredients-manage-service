@@ -1,19 +1,10 @@
 package cloud.zipbob.ingredientsmanageservice.domain.ingredient.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
-
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.Ingredient;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.IngredientType;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.UnitType;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.repository.IngredientRepository;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.CheckAndSendMessageRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.ExpiredIngredientRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientAddRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientRequest;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.UpdateQuantityRequest;
@@ -25,15 +16,20 @@ import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.Refrigerator;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.repository.RefrigeratorRepository;
 import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationException;
 import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationExceptionType;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 class IngredientServiceImplTest {
 
@@ -201,10 +197,8 @@ class IngredientServiceImplTest {
         when(ingredientRepository.findByRefrigeratorId(refrigerator.getId()))
                 .thenReturn(List.of(expiredIngredient, validIngredient));
 
-        ExpiredIngredientRequest request = new ExpiredIngredientRequest(5L);
-
         // When
-        ExpiredIngredientResponse response = ingredientService.getExpiredIngredients(request, 5L);
+        ExpiredIngredientResponse response = ingredientService.getExpiredIngredients(5L, 5L);
 
         // Then
         assertNotNull(response);

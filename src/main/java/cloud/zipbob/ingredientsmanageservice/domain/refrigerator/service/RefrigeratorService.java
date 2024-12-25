@@ -10,5 +10,5 @@ public interface RefrigeratorService {
 
     RefrigeratorResponse deleteRefrigerator(RefrigeratorRequest request, Long authenticatedMemberId);
 
-    RefrigeratorWithIngredientsResponse getRefrigerator(RefrigeratorRequest request, Long authenticatedMemberId);
+    RefrigeratorWithIngredientsResponse getRefrigerator(Long memberId, Long authenticatedMemberId);
 }
