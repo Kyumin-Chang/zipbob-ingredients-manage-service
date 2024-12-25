@@ -22,8 +22,8 @@ public class RefrigeratorController {
         return Responder.success(response);
     }
 
-    @GetMapping("/{memberId}")
-    public ResponseEntity<RefrigeratorWithIngredientsResponse> getRefrigerator(@PathVariable Long memberId, @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
+    @GetMapping("")
+    public ResponseEntity<RefrigeratorWithIngredientsResponse> getRefrigerator(@RequestParam Long memberId, @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
         RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(memberId, authenticatedMemberId);
         return Responder.success(response);
     }

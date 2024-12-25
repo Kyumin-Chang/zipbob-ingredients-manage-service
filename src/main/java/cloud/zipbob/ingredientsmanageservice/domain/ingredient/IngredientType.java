@@ -1,37 +1,92 @@
 package cloud.zipbob.ingredientsmanageservice.domain.ingredient;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import lombok.Getter;
 
 @Getter
 public enum IngredientType {
-    //TODO: 재료 업데이트
+    // 야채/과일
+    APPLE(Category.FRUIT_VEGETABLE, "사과"),
+    BANANA(Category.FRUIT_VEGETABLE, "바나나"),
+    ORANGE(Category.FRUIT_VEGETABLE, "오렌지"),
+    GRAPE(Category.FRUIT_VEGETABLE, "포도"),
+    CUCUMBER(Category.FRUIT_VEGETABLE, "오이"),
+    TOMATO(Category.FRUIT_VEGETABLE, "토마토"),
+    CARROT(Category.FRUIT_VEGETABLE, "당근"),
+    POTATO(Category.FRUIT_VEGETABLE, "감자"),
+    BROCCOLI(Category.FRUIT_VEGETABLE, "브로콜리"),
+    LETTUCE(Category.FRUIT_VEGETABLE, "상추"),
+    SPINACH(Category.FRUIT_VEGETABLE, "시금치"),
+    ZUCCHINI(Category.FRUIT_VEGETABLE, "애호박"),
+    EGGPLANT(Category.FRUIT_VEGETABLE, "가지"),
+    PINEAPPLE(Category.FRUIT_VEGETABLE, "파인애플"),
+    STRAWBERRY(Category.FRUIT_VEGETABLE, "딸기"),
+    PEACH(Category.FRUIT_VEGETABLE, "복숭아"),
+    MANGO(Category.FRUIT_VEGETABLE, "망고"),
+    LEMON(Category.FRUIT_VEGETABLE, "레몬"),
+    KIWI(Category.FRUIT_VEGETABLE, "키위"),
+    BLUEBERRY(Category.FRUIT_VEGETABLE, "블루베리"),
 
-    // 주 재료
-    EGG(Category.MAIN, "계란"),
-    MILK(Category.MAIN, "우유"),
-    BUTTER(Category.MAIN, "버터"),
-    CHICKEN(Category.MAIN, "닭고기"),
-    BEEF(Category.MAIN, "소고기"),
-    PORK(Category.MAIN, "돼지고기"),
-    TOFU(Category.MAIN, "두부"),
-    POTATO(Category.MAIN, "감자"),
-    CARROT(Category.MAIN, "당근"),
-    NOODLES(Category.MAIN, "면"),
+    // 육류
+    CHICKEN(Category.MEAT, "닭고기"),
+    BEEF(Category.MEAT, "소고기"),
+    PORK(Category.MEAT, "돼지고기"),
+    LAMB(Category.MEAT, "양고기"),
+    DUCK(Category.MEAT, "오리고기"),
+    TURKEY(Category.MEAT, "칠면조"),
+    BACON(Category.MEAT, "베이컨"),
+    SAUSAGE(Category.MEAT, "소시지"),
+    HAM(Category.MEAT, "햄"),
+    SALMON(Category.MEAT, "연어"),
+    TUNA(Category.MEAT, "참치"),
+    SHRIMP(Category.MEAT, "새우"),
+    CRAB(Category.MEAT, "게"),
 
-    // 조미료
-    SALT(Category.SEASONING, "소금"),
-    PEPPER(Category.SEASONING, "후추"),
-    SOY_SAUCE(Category.SEASONING, "간장"),
-    VINEGAR(Category.SEASONING, "식초"),
-    SESAME_OIL(Category.SEASONING, "참기름"),
-    RED_PEPPER_FLAKES(Category.SEASONING, "고추가루"),
-    SUGAR(Category.SEASONING, "설탕"),
-    COOKING_WINE(Category.SEASONING, "맛술");
+    // 가공식품
+    TOFU(Category.PROCESSED_FOOD, "두부"),
+    NOODLES(Category.PROCESSED_FOOD, "면"),
+    CANNED_TUNA(Category.PROCESSED_FOOD, "참치캔"),
+    BREAD(Category.PROCESSED_FOOD, "빵"),
+    RICE_CAKE(Category.PROCESSED_FOOD, "떡"),
+    SPAM(Category.PROCESSED_FOOD, "스팸"),
+    FISH_CAKE(Category.PROCESSED_FOOD, "어묵"),
+    CURRY_POWDER(Category.PROCESSED_FOOD, "카레가루"),
+    PASTA(Category.PROCESSED_FOOD, "파스타"),
+    PIZZA_BASE(Category.PROCESSED_FOOD, "피자 도우"),
+
+    // 유제품
+    MILK(Category.DAIRY, "우유"),
+    CHEESE(Category.DAIRY, "치즈"),
+    BUTTER(Category.DAIRY, "버터"),
+    YOGURT(Category.DAIRY, "요거트"),
+    WHIPPED_CREAM(Category.DAIRY, "휘핑크림"),
+    ICE_CREAM(Category.DAIRY, "아이스크림"),
+    CREAM_CHEESE(Category.DAIRY, "크림치즈"),
+    EVAPORATED_MILK(Category.DAIRY, "연유"),
+
+    // 조미료/소스
+    SALT(Category.SEASONING_SAUCE, "소금"),
+    SUGAR(Category.SEASONING_SAUCE, "설탕"),
+    SOY_SAUCE(Category.SEASONING_SAUCE, "간장"),
+    VINEGAR(Category.SEASONING_SAUCE, "식초"),
+    SESAME_OIL(Category.SEASONING_SAUCE, "참기름"),
+    PEPPER(Category.SEASONING_SAUCE, "후추"),
+    RED_PEPPER_FLAKES(Category.SEASONING_SAUCE, "고추가루"),
+    GARLIC(Category.SEASONING_SAUCE, "마늘"),
+    GINGER(Category.SEASONING_SAUCE, "생강"),
+    KETCHUP(Category.SEASONING_SAUCE, "케찹"),
+    MAYONNAISE(Category.SEASONING_SAUCE, "마요네즈"),
+    MUSTARD(Category.SEASONING_SAUCE, "머스타드"),
+    CHILI_SAUCE(Category.SEASONING_SAUCE, "칠리소스"),
+    BARBECUE_SAUCE(Category.SEASONING_SAUCE, "바베큐소스"),
+    OYSTER_SAUCE(Category.SEASONING_SAUCE, "굴소스"),
+    FISH_SAUCE(Category.SEASONING_SAUCE, "액젓"),
+    CURRY_PASTE(Category.SEASONING_SAUCE, "카레 페이스트");
 
     private final Category category;
     private final String koreanName;
@@ -58,7 +113,10 @@ public enum IngredientType {
     }
 
     public enum Category {
-        MAIN,
-        SEASONING
+        FRUIT_VEGETABLE,
+        MEAT,
+        PROCESSED_FOOD,
+        DAIRY,
+        SEASONING_SAUCE
     }
 }
