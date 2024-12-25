@@ -40,9 +40,9 @@ public class IngredientController {
         return Responder.success(response);
     }
 
-    @GetMapping("/type/{category}")
+    @GetMapping("/type")
     public ResponseEntity<GetIngredientsByTypeResponse> getIngredientsByType(
-            @PathVariable IngredientType.Category category) {
+            @RequestParam IngredientType.Category category) {
         try {
             GetIngredientsByTypeResponse response = ingredientService.getIngredientsByType(category);
             return Responder.success(response);
@@ -51,9 +51,9 @@ public class IngredientController {
         }
     }
 
-    @GetMapping("/expired/{memberId}")
+    @GetMapping("/expired")
     public ResponseEntity<ExpiredIngredientResponse> getExpiredIngredients(
-            @PathVariable Long memberId,
+            @RequestParam Long memberId,
             @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
         ExpiredIngredientResponse response = ingredientService.getExpiredIngredients(memberId, authenticatedMemberId);
         return Responder.success(response);
