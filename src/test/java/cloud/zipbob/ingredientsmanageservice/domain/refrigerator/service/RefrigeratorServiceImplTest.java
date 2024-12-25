@@ -1,12 +1,5 @@
 package cloud.zipbob.ingredientsmanageservice.domain.refrigerator.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.Refrigerator;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.exception.RefrigeratorException;
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.exception.RefrigeratorExceptionType;
@@ -17,13 +10,17 @@ import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.response.Refrig
 import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.response.RefrigeratorWithIngredientsResponse;
 import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationException;
 import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationExceptionType;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class RefrigeratorServiceImplTest {
 
@@ -95,11 +92,8 @@ class RefrigeratorServiceImplTest {
     @Test
     @DisplayName("냉장고 조회 - 재료가 있는 냉장고를 조회할 때 재료 목록이 포함")
     void getRefrigerator_WithIngredients_ShouldReturnRefrigeratorWithIngredients() {
-        // Given
-        RefrigeratorRequest request = new RefrigeratorRequest(1L);
-
         // When
-        RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(request, 1L);
+        RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(1L, 1L);
 
         // Then
         assertNotNull(response);
@@ -110,11 +104,8 @@ class RefrigeratorServiceImplTest {
     @Test
     @DisplayName("냉장고 조회 - 재료가 없는 냉장고를 조회할 때 빈 재료 목록을 반환")
     void getRefrigerator_WithoutIngredients_ShouldReturnRefrigeratorWithoutIngredients() {
-        // Given
-        RefrigeratorRequest request = new RefrigeratorRequest(2L);
-
         // When
-        RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(request, 2L);
+        RefrigeratorWithIngredientsResponse response = refrigeratorService.getRefrigerator(2L, 2L);
 
         // Then
         assertNotNull(response);
@@ -140,14 +131,11 @@ class RefrigeratorServiceImplTest {
     @Test
     @DisplayName("냉장고 조회 실패 - 존재하지 않는 멤버 ID로 조회 시 예외 발생")
     void getRefrigerator_ShouldThrowException_WhenRefrigeratorNotFound() {
-        // Given
-        RefrigeratorRequest request = new RefrigeratorRequest(999L);
-
         when(refrigeratorRepository.findByMemberId(999L)).thenReturn(Optional.empty());
 
         // When & Then
         RefrigeratorException exception = assertThrows(RefrigeratorException.class, () ->
-                refrigeratorService.getRefrigerator(request, 999L)
+                refrigeratorService.getRefrigerator(999L, 999L)
         );
 
         assertEquals(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND, exception.getExceptionType());
@@ -172,12 +160,9 @@ class RefrigeratorServiceImplTest {
     @Test
     @DisplayName("멤버 검증 실패 - 인증된 멤버 ID와 요청 멤버 ID가 다른 경우 예외 발생")
     void validationMember_ShouldThrowAuthenticationException() {
-        // Given
-        RefrigeratorRequest request = new RefrigeratorRequest(3L);
-
         // When & Then
         CustomAuthenticationException exception = assertThrows(CustomAuthenticationException.class, () ->
-                refrigeratorService.getRefrigerator(request, 1L)
+                refrigeratorService.getRefrigerator(5L, 1L)
         );
 
         assertEquals(CustomAuthenticationExceptionType.AUTHENTICATION_DENIED, exception.getExceptionType());

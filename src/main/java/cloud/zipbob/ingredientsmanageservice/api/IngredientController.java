@@ -1,34 +1,17 @@
 package cloud.zipbob.ingredientsmanageservice.api;
 
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.IngredientType;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.exception.IngredientException;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.exception.IngredientExceptionType;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.CheckAndSendMessageRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.ExpiredIngredientRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.GetIngredientsByTypeRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientAddRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.RecipeSelectRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.UpdateQuantityRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.CheckAndSendMessageResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.ExpiredIngredientResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.GetIngredientsByTypeResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.IngredientAddResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.IngredientDeleteResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.RecipeSelectResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.UpdateQuantityResponse;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.*;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.*;
 import cloud.zipbob.ingredientsmanageservice.domain.ingredient.service.IngredientService;
 import cloud.zipbob.ingredientsmanageservice.global.Responder;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/ingredients")
@@ -57,22 +40,22 @@ public class IngredientController {
         return Responder.success(response);
     }
 
-    @GetMapping("/type")
+    @GetMapping("/type/{category}")
     public ResponseEntity<GetIngredientsByTypeResponse> getIngredientsByType(
-            final @RequestBody GetIngredientsByTypeRequest request) {
+            @PathVariable IngredientType.Category category) {
         try {
-            GetIngredientsByTypeResponse response = ingredientService.getIngredientsByType(request);
+            GetIngredientsByTypeResponse response = ingredientService.getIngredientsByType(category);
             return Responder.success(response);
         } catch (IllegalArgumentException e) {
             throw new IngredientException(IngredientExceptionType.INGREDIENT_TYPE_ERROR);
         }
     }
 
-    @GetMapping("/expired")
+    @GetMapping("/expired/{memberId}")
     public ResponseEntity<ExpiredIngredientResponse> getExpiredIngredients(
-            final @RequestBody ExpiredIngredientRequest request,
+            @PathVariable Long memberId,
             @RequestHeader("X-Member-Id") Long authenticatedMemberId) {
-        ExpiredIngredientResponse response = ingredientService.getExpiredIngredients(request, authenticatedMemberId);
+        ExpiredIngredientResponse response = ingredientService.getExpiredIngredients(memberId, authenticatedMemberId);
         return Responder.success(response);
     }
 

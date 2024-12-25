@@ -96,10 +96,9 @@ public class IngredientServiceImpl implements IngredientService {
     @Override
     @Cacheable(value = "expiredIngredientsCache", key = "#root.args[1] != null ? #root.args[1] : 'defaultKey'")
     @Transactional(readOnly = true)
-    public ExpiredIngredientResponse getExpiredIngredients(ExpiredIngredientRequest request,
-                                                           Long authenticatedMemberId) {
-        validationMember(request.memberId(), authenticatedMemberId);
-        Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId())
+    public ExpiredIngredientResponse getExpiredIngredients(Long memberId, Long authenticatedMemberId) {
+        validationMember(memberId, authenticatedMemberId);
+        Refrigerator refrigerator = refrigeratorRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
         List<Ingredient> expiredIngredients = ingredientRepository.findByRefrigeratorId(refrigerator.getId()).stream()
                 .filter(ingredient -> ingredient.getExpiredDate().isBefore(LocalDate.now())).toList();
@@ -109,8 +108,8 @@ public class IngredientServiceImpl implements IngredientService {
     @Override
     @Cacheable(value = "ingredientsTypeCache", key = "#root.args[0].category != null ? #root.args[0].category : 'defaultKey'")
     @Transactional(readOnly = true)
-    public GetIngredientsByTypeResponse getIngredientsByType(GetIngredientsByTypeRequest request) {
-        List<IngredientType> ingredients = IngredientType.getIngredientsByCategory(request.category());
+    public GetIngredientsByTypeResponse getIngredientsByType(IngredientType.Category category) {
+        List<IngredientType> ingredients = IngredientType.getIngredientsByCategory(category);
         return GetIngredientsByTypeResponse.of(ingredients);
     }
 

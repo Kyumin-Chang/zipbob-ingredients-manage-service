@@ -39,9 +39,9 @@ public class RefrigeratorServiceImpl implements RefrigeratorService {
     @Override
     @Cacheable(value = "refrigeratorInfoCache", key = "#root.args[1] != null ? #root.args[1] : 'defaultKey'")
     @Transactional(readOnly = true)
-    public RefrigeratorWithIngredientsResponse getRefrigerator(RefrigeratorRequest request, Long authenticatedMemberId) {
-        validationMember(request.memberId(), authenticatedMemberId);
-        Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
+    public RefrigeratorWithIngredientsResponse getRefrigerator(Long memberId, Long authenticatedMemberId) {
+        validationMember(memberId, authenticatedMemberId);
+        Refrigerator refrigerator = refrigeratorRepository.findByMemberId(memberId).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
         return RefrigeratorWithIngredientsResponse.of(refrigerator);
     }
 

@@ -1,19 +1,9 @@
 package cloud.zipbob.ingredientsmanageservice.domain.ingredient.service;
 
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.CheckAndSendMessageRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.ExpiredIngredientRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.GetIngredientsByTypeRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientAddRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.IngredientRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.RecipeSelectRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.UpdateQuantityRequest;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.CheckAndSendMessageResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.ExpiredIngredientResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.GetIngredientsByTypeResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.IngredientAddResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.IngredientDeleteResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.RecipeSelectResponse;
-import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.UpdateQuantityResponse;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.IngredientType;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.request.*;
+import cloud.zipbob.ingredientsmanageservice.domain.ingredient.response.*;
+
 import java.util.List;
 
 public interface IngredientService {
@@ -24,9 +14,9 @@ public interface IngredientService {
 
     UpdateQuantityResponse updateQuantity(UpdateQuantityRequest request, Long authenticatedMemberId);
 
-    ExpiredIngredientResponse getExpiredIngredients(ExpiredIngredientRequest request, Long authenticatedMemberId);
+    ExpiredIngredientResponse getExpiredIngredients(Long memberId, Long authenticatedMemberId);
 
-    GetIngredientsByTypeResponse getIngredientsByType(GetIngredientsByTypeRequest request);
+    GetIngredientsByTypeResponse getIngredientsByType(IngredientType.Category category);
 
     CheckAndSendMessageResponse checkAndSendMessage(CheckAndSendMessageRequest request, Long authenticatedMemberId);
 
