@@ -15,6 +15,8 @@ import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.repository.Refr
 import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationException;
 import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationExceptionType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,6 +64,7 @@ public class IngredientServiceImpl implements IngredientService {
 
 
     @Override
+    @CacheEvict(value = "expiredIngredientsCache", key = "#root.args[1] != null ? #root.args[1] : 'defaultKey'")
     @Transactional
     public IngredientDeleteResponse deleteIngredient(IngredientRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
@@ -91,6 +94,7 @@ public class IngredientServiceImpl implements IngredientService {
     }
 
     @Override
+    @Cacheable(value = "expiredIngredientsCache", key = "#root.args[1] != null ? #root.args[1] : 'defaultKey'")
     @Transactional(readOnly = true)
     public ExpiredIngredientResponse getExpiredIngredients(ExpiredIngredientRequest request,
                                                            Long authenticatedMemberId) {
@@ -103,6 +107,7 @@ public class IngredientServiceImpl implements IngredientService {
     }
 
     @Override
+    @Cacheable(value = "ingredientsTypeCache", key = "#root.args[0].category != null ? #root.args[0].category : 'defaultKey'")
     @Transactional(readOnly = true)
     public GetIngredientsByTypeResponse getIngredientsByType(GetIngredientsByTypeRequest request) {
         List<IngredientType> ingredients = IngredientType.getIngredientsByCategory(request.category());
