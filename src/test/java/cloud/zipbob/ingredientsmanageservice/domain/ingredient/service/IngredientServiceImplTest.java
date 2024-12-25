@@ -62,7 +62,7 @@ class IngredientServiceImplTest {
         // Given
         IngredientAddRequest request = new IngredientAddRequest(
                 5L,
-                List.of(IngredientType.EGG, IngredientType.MILK),
+                List.of(IngredientType.BEEF, IngredientType.MILK),
                 List.of(10, 2),
                 List.of(UnitType.PIECE, UnitType.LITER),
                 List.of(LocalDate.now().plusDays(7), LocalDate.now().plusDays(5))
@@ -71,7 +71,7 @@ class IngredientServiceImplTest {
         Ingredient eggIngredient = Ingredient.builder()
                 .id(1L)
                 .refrigerator(refrigerator)
-                .type(IngredientType.EGG)
+                .type(IngredientType.BEEF)
                 .quantity(10)
                 .unitType(UnitType.PIECE)
                 .expiredDate(request.expiredDates().get(0))
@@ -87,7 +87,7 @@ class IngredientServiceImplTest {
                 .build();
 
         when(refrigeratorRepository.findByMemberId(5L)).thenReturn(Optional.of(refrigerator));
-        when(ingredientRepository.findByRefrigeratorIdAndType(refrigerator.getId(), IngredientType.EGG))
+        when(ingredientRepository.findByRefrigeratorIdAndType(refrigerator.getId(), IngredientType.BEEF))
                 .thenReturn(Optional.empty());
         when(ingredientRepository.findByRefrigeratorIdAndType(refrigerator.getId(), IngredientType.MILK))
                 .thenReturn(Optional.empty());
@@ -104,7 +104,7 @@ class IngredientServiceImplTest {
 
         IngredientAddResponse eggResponse = responses.get(0);
         assertEquals(1L, eggResponse.getRefrigeratorId());
-        assertEquals(IngredientType.EGG, eggResponse.getType());
+        assertEquals(IngredientType.BEEF, eggResponse.getType());
         assertEquals(10, eggResponse.getQuantity());
         assertEquals(UnitType.PIECE, eggResponse.getUnitType());
 
@@ -211,7 +211,7 @@ class IngredientServiceImplTest {
     @DisplayName("멤버 검증 실패 - 인증된 멤버 ID와 요청 멤버 ID가 다른 경우 예외 발생")
     void validationMember_ShouldThrowAuthenticationException() {
         // Given
-        CheckAndSendMessageRequest request = new CheckAndSendMessageRequest(6L, List.of(IngredientType.EGG));
+        CheckAndSendMessageRequest request = new CheckAndSendMessageRequest(6L, List.of(IngredientType.BEEF));
 
         // When & Then
         CustomAuthenticationException exception = assertThrows(CustomAuthenticationException.class,
