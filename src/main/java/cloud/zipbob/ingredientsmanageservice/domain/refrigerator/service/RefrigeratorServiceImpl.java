@@ -11,8 +11,6 @@ import cloud.zipbob.ingredientsmanageservice.domain.refrigerator.response.Refrig
 import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationException;
 import cloud.zipbob.ingredientsmanageservice.global.exception.CustomAuthenticationExceptionType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +35,6 @@ public class RefrigeratorServiceImpl implements RefrigeratorService {
     }
 
     @Override
-    @Cacheable(value = "refrigeratorInfoCache", key = "#root.args[1] != null ? #root.args[1] : 'defaultKey'")
     @Transactional(readOnly = true)
     public RefrigeratorWithIngredientsResponse getRefrigerator(Long memberId, Long authenticatedMemberId) {
         validationMember(memberId, authenticatedMemberId);
@@ -47,7 +44,6 @@ public class RefrigeratorServiceImpl implements RefrigeratorService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "refrigeratorInfoCache", key = "#root.args[1] != null ? #root.args[1] : 'defaultKey'")
     public RefrigeratorResponse deleteRefrigerator(RefrigeratorRequest request, Long authenticatedMemberId) {
         validationMember(request.memberId(), authenticatedMemberId);
         Refrigerator refrigerator = refrigeratorRepository.findByMemberId(request.memberId()).orElseThrow(() -> new RefrigeratorException(RefrigeratorExceptionType.REFRIGERATOR_NOT_FOUND));
